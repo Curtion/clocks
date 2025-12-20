@@ -8,4 +8,9 @@ export default defineNuxtConfig({
       standalone: false,
     },
   },
+  app: {
+    head: {
+      title: 'AI时钟',
+    },
+  },
 })
