@@ -11,6 +11,9 @@ export default defineNuxtConfig({
   app: {
     head: {
       title: 'AI时钟',
+      htmlAttrs: {
+        lang: 'zh-CN',
+      },
     },
   },
   vite: {

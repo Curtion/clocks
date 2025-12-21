@@ -24,7 +24,7 @@ const { data: clockFiles } = await useFetch('/api/clocks')
 <style scoped>
   .clocks-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 500px), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 600px), 1fr));
     gap: 20px;
     padding: 20px;
     box-sizing: border-box;
@@ -49,7 +49,7 @@ const { data: clockFiles } = await useFetch('/api/clocks')
 
   .clock-iframe {
     width: 100%;
-    height: 500px;
+    height: 600px;
     border: none;
     border-radius: 4px;
   }
