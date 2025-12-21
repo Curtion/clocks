@@ -5,9 +5,10 @@ const { data: clockFiles } = await useFetch('/api/clocks')
 <template>
   <div>
     <NuxtRouteAnnouncer />
-    <HelpHint title="提示词">
+    <HelpHint title="说明">
       <ul>
-        <li>请生成一个包含 HTML、CSS 和 JS 的单个 HTML 文件，在页面中心显示一个带有时针、分针和秒针的模拟时钟，并确保它能显示当前的准确时间。 仅生成代码, 不可引用外部资源。</li>
+        <li>提示词: 请生成一个包含 HTML、CSS 和 JS 的单个 HTML 文件，在页面中心显示一个带有时针、分针和秒针的模拟时钟，并确保它能显示当前的准确时间。 仅生成代码, 不可引用外部资源。</li>
+        <li>源码: <a href="https://github.com/Curtion/clocks" target="_blank" rel="noopener noreferrer">https://github.com/Curtion/clocks</a></li>
       </ul>
     </HelpHint>
     <div class="clocks-container">
