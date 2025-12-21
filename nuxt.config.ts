@@ -13,4 +13,7 @@ export default defineNuxtConfig({
       title: 'AI时钟',
     },
   },
+  vite: {
+    assetsInclude: ['**/*.html'],
+  },
 })
