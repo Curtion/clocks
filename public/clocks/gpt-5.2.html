@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>模拟时钟</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --fg: #e8ecff;
+      --muted: rgba(232, 236, 255, 0.18);
+      --muted2: rgba(232, 236, 255, 0.10);
+      --accent: #ff4d6d;
+      --accent2: #5eead4;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(1200px 800px at 50% 35%, rgba(94,234,212,0.10), transparent 55%),
+                  radial-gradient(900px 600px at 50% 70%, rgba(255,77,109,0.10), transparent 60%),
+                  var(--bg);
+      color: var(--fg);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .wrap {
+      display: grid;
+      place-items: center;
+      gap: 14px;
+      padding: 24px;
+    }
+
+    .clock {
+      width: min(72vmin, 380px);
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      position: relative;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.06), transparent 55%),
+        radial-gradient(circle at 50% 50%, rgba(0,0,0,0.35), rgba(0,0,0,0.65));
+      border: 1px solid rgba(232,236,255,0.16);
+      box-shadow:
+        0 18px 55px rgba(0,0,0,0.55),
+        inset 0 0 0 1px rgba(232,236,255,0.08),
+        inset 0 -25px 60px rgba(0,0,0,0.35);
+      display: grid;
+      place-items: center;
+    }
+
+    .dial {
+      position: absolute;
+      inset: 8%;
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 1px var(--muted2);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(232,236,255,0.07), transparent 58%);
+    }
+
+    .ticks {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+    }
+
+    .tick {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 2px;
+      height: 46%;
+      transform-origin: 50% 100%;
+      transform: translate(-50%, -100%) rotate(var(--a));
+      opacity: 0.85;
+    }
+    .tick::before {
+      content: "";
+      display: block;
+      width: 2px;
+      height: 10px;
+      margin: 0 auto;
+      border-radius: 1px;
+      background: var(--muted);
+    }
+    .tick.major::before {
+      width: 3px;
+      height: 16px;
+      border-radius: 2px;
+      background: rgba(232,236,255,0.30);
+    }
+
+    .numbers {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .num {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) translate(var(--x), var(--y));
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      font-size: clamp(12px, 2.2vmin, 16px);
+      color: rgba(232,236,255,0.78);
+      text-shadow: 0 2px 12px rgba(0,0,0,0.55);
+    }
+
+    .hands {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+    }
+
+    .hand {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform-origin: 50% 100%;
+      transform: translate(-50%, -100%) rotate(0deg);
+      border-radius: 999px;
+      will-change: transform;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.35);
+    }
+
+    .hand.hour {
+      width: 10px;
+      height: 28%;
+      background: linear-gradient(to bottom, rgba(232,236,255,0.95), rgba(232,236,255,0.55));
+    }
+
+    .hand.minute {
+      width: 7px;
+      height: 38%;
+      background: linear-gradient(to bottom, rgba(94,234,212,0.95), rgba(94,234,212,0.55));
+    }
+
+    .hand.second {
+      width: 3px;
+      height: 44%;
+      background: linear-gradient(to bottom, rgba(255,77,109,0.98), rgba(255,77,109,0.55));
+      box-shadow: 0 8px 18px rgba(255,77,109,0.18), 0 10px 20px rgba(0,0,0,0.35);
+    }
+
+    .hand.second::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -16%;
+      width: 7px;
+      height: 7px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: rgba(255,77,109,0.92);
+      box-shadow: 0 0 0 4px rgba(255,77,109,0.10);
+    }
+
+    .center-cap {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 16px;
+      height: 16px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.55), rgba(232,236,255,0.18));
+      box-shadow:
+        0 10px 24px rgba(0,0,0,0.45),
+        inset 0 0 0 1px rgba(232,236,255,0.18);
+    }
+
+    .label {
+      font-variant-numeric: tabular-nums;
+      font-size: 14px;
+      color: rgba(232,236,255,0.75);
+      padding: 8px 12px;
+      border: 1px solid rgba(232,236,255,0.14);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.03);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.35);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .hand { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="clock" aria-label="模拟时钟（当前本地时间）" role="img">
+      <div class="dial"></div>
+
+      <div class="ticks" aria-hidden="true" id="ticks"></div>
+      <div class="numbers" aria-hidden="true" id="numbers"></div>
+
+      <div class="hands" aria-hidden="true">
+        <div class="hand hour" id="hourHand"></div>
+        <div class="hand minute" id="minuteHand"></div>
+        <div class="hand second" id="secondHand"></div>
+        <div class="center-cap"></div>
+      </div>
+    </div>
+
+    <div class="label" id="digital" aria-live="polite"></div>
+  </div>
+
+  <script>
+    (function () {
+      const hourHand = document.getElementById("hourHand");
+      const minuteHand = document.getElementById("minuteHand");
+      const secondHand = document.getElementById("secondHand");
+      const digital = document.getElementById("digital");
+      const ticks = document.getElementById("ticks");
+      const numbers = document.getElementById("numbers");
+
+      // 刻度（60个，含12个主刻度）
+      for (let i = 0; i < 60; i++) {
+        const tick = document.createElement("div");
+        tick.className = "tick" + (i % 5 === 0 ? " major" : "");
+        tick.style.setProperty("--a", (i * 6) + "deg");
+        ticks.appendChild(tick);
+      }
+
+      // 数字（12 / 3 / 6 / 9）
+      const nums = [
+        { n: "12", a: -90 },
+        { n: "3",  a: 0 },
+        { n: "6",  a: 90 },
+        { n: "9",  a: 180 },
+      ];
+      for (const item of nums) {
+        const r = 38; // 相对半径（百分比）
+        const rad = item.a * Math.PI / 180;
+        const x = Math.cos(rad) * r;
+        const y = Math.sin(rad) * r;
+        const el = document.createElement("div");
+        el.className = "num";
+        el.textContent = item.n;
+        el.style.setProperty("--x", x + "%");
+        el.style.setProperty("--y", y + "%");
+        numbers.appendChild(el);
+      }
+
+      const pad2 = (v) => String(v).padStart(2, "0");
+
+      function update() {
+        const now = new Date();
+
+        const h = now.getHours();
+        const m = now.getMinutes();
+        const s = now.getSeconds();
+        const ms = now.getMilliseconds();
+
+        // 连续平滑：秒针用毫秒，分针/时针也跟随
+        const sec = s + ms / 1000;
+        const min = m + sec / 60;
+        const hour = (h % 12) + min / 60;
+
+        const secDeg = sec * 6;         // 360/60
+        const minDeg = min * 6;
+        const hourDeg = hour * 30;      // 360/12
+
+        secondHand.style.transform = `translate(-50%, -100%) rotate(${secDeg}deg)`;
+        minuteHand.style.transform = `translate(-50%, -100%) rotate(${minDeg}deg)`;
+        hourHand.style.transform = `translate(-50%, -100%) rotate(${hourDeg}deg)`;
+
+        digital.textContent = `${pad2(h)}:${pad2(m)}:${pad2(s)}`;
+
+        requestAnimationFrame(update);
+      }
+
+      requestAnimationFrame(update);
+    })();
+  </script>
+</body>
+</html>
