@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>模拟时钟</title>
+  <style>
+    :root {
+      --size: 320px;
+      --border: 10px;
+      --bg: #0f172a;
+      --face: #e2e8f0;
+      --tick: #1f2937;
+      --hand-hour: #111827;
+      --hand-minute: #0f172a;
+      --hand-second: #ef4444;
+      --pivot: #0f172a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at 30% 30%, #1e293b, #0b1220 55%, #060a12 100%);
+      color: #e2e8f0;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+
+    .clock {
+      position: relative;
+      width: var(--size);
+      height: var(--size);
+      border-radius: 50%;
+      background: var(--face);
+      border: var(--border) solid #cbd5e1;
+      box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.35),
+        inset 0 0 0 4px #e2e8f0,
+        inset 0 0 35px rgba(0, 0, 0, 0.08);
+      display: grid;
+      place-items: center;
+    }
+
+    .ticks {
+      position: absolute;
+      inset: calc(var(--border) + 6px);
+      border-radius: 50%;
+    }
+
+    .ticks div {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 4px;
+      height: 12%;
+      background: var(--tick);
+      transform-origin: center 180%;
+      border-radius: 2px;
+      opacity: 0.7;
+    }
+
+    .ticks div.major {
+      width: 6px;
+      height: 16%;
+      background: #0f172a;
+      opacity: 1;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    .hand {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform-origin: center calc(100% - 10px);
+      transform: translate(-50%, -100%) rotate(0deg);
+      border-radius: 999px;
+    }
+
+    .hand.hour {
+      width: 10px;
+      height: 28%;
+      background: var(--hand-hour);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+
+    .hand.minute {
+      width: 6px;
+      height: 36%;
+      background: var(--hand-minute);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+
+    .hand.second {
+      width: 3px;
+      height: 42%;
+      background: var(--hand-second);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+
+    .pivot {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 18px;
+      height: 18px;
+      background: var(--pivot);
+      border: 4px solid #e2e8f0;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+  </style>
+</head>
+<body>
+  <div class="clock">
+    <div class="ticks" id="ticks"></div>
+    <div class="hand hour" id="hour"></div>
+    <div class="hand minute" id="minute"></div>
+    <div class="hand second" id="second"></div>
+    <div class="pivot"></div>
+  </div>
+
+  <script>
+    // Build tick marks
+    (function initTicks() {
+      const ticks = document.getElementById('ticks');
+      for (let i = 0; i < 60; i++) {
+        const tick = document.createElement('div');
+        if (i % 5 === 0) tick.classList.add('major');
+        tick.style.transform = `translate(-50%, -50%) rotate(${i * 6}deg)`;
+        ticks.appendChild(tick);
+      }
+    })();
+
+    const hourHand = document.getElementById('hour');
+    const minuteHand = document.getElementById('minute');
+    const secondHand = document.getElementById('second');
+
+    function update() {
+      const now = new Date();
+      const ms = now.getMilliseconds();
+      const s = now.getSeconds() + ms / 1000;
+      const m = now.getMinutes() + s / 60;
+      const h = (now.getHours() % 12) + m / 60;
+
+      const hourDeg = h * 30;                 // 360 / 12
+      const minuteDeg = m * 6;                // 360 / 60
+      const secondDeg = s * 6;                // 360 / 60
+
+      hourHand.style.transform = `translate(-50%, -100%) rotate(${hourDeg}deg)`;
+      minuteHand.style.transform = `translate(-50%, -100%) rotate(${minuteDeg}deg)`;
+      secondHand.style.transform = `translate(-50%, -100%) rotate(${secondDeg}deg)`;
+
+      requestAnimationFrame(update);
+    }
+
+    requestAnimationFrame(update);
+  </script>
+</body>
+</html>

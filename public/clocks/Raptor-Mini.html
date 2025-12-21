@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>模拟时钟</title>
+    <style>
+        /* 基本重置 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        /* 页面居中容器 */
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f6f8fa 0%, #e9eef3 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", "Helvetica Neue", Arial, "Noto Sans SC", sans-serif;
+            color: #222;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 包裹器 */
+        .wrapper {
+            text-align: center;
+            padding: 18px;
+            user-select: none;
+        }
+
+        /* 时钟主体 */
+        .clock {
+            --size: min(80vmin, 360px);
+            /* 响应尺寸 */
+            width: var(--size);
+            height: var(--size);
+            border-radius: 50%;
+            position: relative;
+            background: radial-gradient(circle at 30% 22%, #ffffff 0%, #f8fafb 30%, #eef3f7 65%, #e6ecf1 100%);
+            box-shadow:
+                0 10px 30px rgba(14, 20, 33, 0.12),
+                inset 0 -8px 20px rgba(0, 0, 0, 0.04);
+            border: 8px solid rgba(0, 0, 0, 0.06);
+            overflow: visible;
+        }
+
+        /* 数字 */
+        .numeral {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 600;
+            font-size: calc(var(--size) * 0.08);
+            color: #222;
+            text-shadow: 0 1px rgba(255, 255, 255, 0.6);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* 刻度 */
+        .tick {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 2px;
+            background: #777;
+            border-radius: 2px;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.95;
+        }
+
+        /* 指针基础样式 */
+        .hand {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform-origin: 50% 100%;
+            transform: translate(-50%, -100%) rotate(0deg);
+            pointer-events: none;
+        }
+
+        /* 时针 */
+        .hour {
+            width: 8px;
+            height: 28%;
+            background: linear-gradient(#222, #111);
+            border-radius: 8px;
+            z-index: 4;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+
+        /* 分针 */
+        .minute {
+            width: 6px;
+            height: 40%;
+            background: linear-gradient(#111, #0b0b0b);
+            border-radius: 6px;
+            z-index: 3;
+        }
+
+        /* 秒针 */
+        .second {
+            width: 2px;
+            height: 45%;
+            background: #e04646;
+            border-radius: 2px;
+            z-index: 5;
+            box-shadow: 0 2px 6px rgba(224, 70, 70, 0.15);
+        }
+
+        /* 秒针的尾部（小圆点/配重） */
+        .second::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 92%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background: #e04646;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(224, 70, 70, 0.25);
+        }
+
+        /* 中心轴盖 */
+        .center {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 14px;
+            height: 14px;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fff, #ddd);
+            border: 2px solid rgba(0, 0, 0, 0.08);
+            z-index: 6;
+            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6), 0 2px 6px rgba(18, 27, 42, 0.12);
+            pointer-events: none;
+        }
+
+        /* 数字下方的文字（精确时间展示和无障碍提示） */
+        .timeText {
+            margin-top: 14px;
+            font-size: calc(var(--size) * 0.07);
+            color: #333;
+            font-weight: 500;
+            user-select: none;
+        }
+
+        /* 小屏幕做微调 */
+        @media (max-width: 480px) {
+            .numeral {
+                font-size: calc(var(--size) * 0.09);
+            }
+
+            .timeText {
+                font-size: calc(var(--size) * 0.08);
+            }
+        }
+
+        /* 当用户偏好减少动画时，使用平滑短过渡以降低突兀感（不会做持续 rAF） */
+        @media (prefers-reduced-motion: reduce) {
+
+            .hour,
+            .minute,
+            .second {
+                transition: transform .2s linear;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <!-- 时钟主体 -->
+        <div class="clock" id="clock" role="img" aria-label="模拟时钟">
+            <div class="hand hour" id="hour"></div>
+            <div class="hand minute" id="minute"></div>
+            <div class="hand second" id="second"></div>
+            <div class="center" aria-hidden="true"></div>
+        </div>
+
+        <!-- 显示当前时间的文本（便于精确查看 & 无障碍） -->
+        <div class="timeText" id="timeText" aria-live="polite"></div>
+    </div>
+
+    <script>
+        /*
+          模拟时钟 JavaScript
+          - 在页面中心显示带有时、分、秒针的模拟时钟
+          - 使用平滑动画（若用户未选择 reduce-motion）
+          - 自动生成刻度与数字，响应窗口缩放
+          - 每帧（或每秒）根据系统时间计算角度以保证准确性
+        */
+
+        (function () {
+            const clock = document.getElementById('clock');
+            const hourEl = document.getElementById('hour');
+            const minuteEl = document.getElementById('minute');
+            const secondEl = document.getElementById('second');
+            const timeText = document.getElementById('timeText');
+
+            let ticks = [];
+            let numerals = [];
+
+            // 构建刻度与数字（在初始化及窗口大小改变时调用）
+            function buildFace() {
+                // 清理旧的
+                ticks.forEach(t => t.remove());
+                numerals.forEach(n => n.remove());
+                ticks = [];
+                numerals = [];
+
+                const rect = clock.getBoundingClientRect();
+                const size = Math.min(rect.width, rect.height);
+                const radius = size / 2;
+
+                // 刻度（60 个）
+                for (let i = 0; i < 60; i++) {
+                    const t = document.createElement('div');
+                    t.className = 'tick';
+                    const angle = i * 6;
+                    const isHour = i % 5 === 0;
+
+                    // 刻度长度与宽度依据表盘大小调整
+                    const length = Math.round(isHour ? size * 0.08 : size * 0.045);
+                    const width = Math.max(2, Math.round(isHour ? size * 0.007 : size * 0.004));
+                    t.style.height = length + 'px';
+                    t.style.width = width + 'px';
+                    t.style.background = isHour ? '#222' : '#777';
+                    t.style.opacity = isHour ? '1' : '0.85';
+
+                    // 将刻度放到表盘中心，然后旋转并向外移动到边缘附近
+                    // moveOut 的值尽量让刻度靠近边缘但不要与外框重叠
+                    const moveOut = Math.round(radius - (length * 0.5) - (size * 0.06));
+                    t.style.transform = `translate(-50%,-50%) rotate(${angle}deg) translateY(-${moveOut}px)`;
+
+                    clock.appendChild(t);
+                    ticks.push(t);
+                }
+
+                // 小时数字：1 到 12
+                for (let i = 1; i <= 12; i++) {
+                    const n = document.createElement('div');
+                    n.className = 'numeral';
+                    n.textContent = i.toString();
+
+                    const angle = i * 30;
+                    const moveOut = Math.round(radius - (size * 0.14));
+                    // 先旋转到对应位置再反向旋转自身，保持文字水平
+                    n.style.transform = `translate(-50%,-50%) rotate(${angle}deg) translateY(-${moveOut}px) rotate(${-angle}deg)`;
+
+                    clock.appendChild(n);
+                    numerals.push(n);
+                }
+            }
+
+            // 更新指针方向（接受一个 Date 对象参数以方便测试）
+            function updateHands(now) {
+                const date = now || new Date();
+                const ms = date.getMilliseconds();
+                const s = date.getSeconds() + ms / 1000;    // 带小数实现平滑
+                const m = date.getMinutes() + s / 60;
+                const h = (date.getHours() % 12) + m / 60;
+
+                const hourDeg = h * 30;      // 360 / 12
+                const minuteDeg = m * 6;     // 360 / 60
+                const secondDeg = s * 6;
+
+                hourEl.style.transform = `translate(-50%,-100%) rotate(${hourDeg}deg)`;
+                minuteEl.style.transform = `translate(-50%,-100%) rotate(${minuteDeg}deg)`;
+                secondEl.style.transform = `translate(-50%,-100%) rotate(${secondDeg}deg)`;
+
+                // 更新文字时间（24 小时制，精确到秒）
+                const pad = n => n.toString().padStart(2, '0');
+                const hh = pad(date.getHours());
+                const mm = pad(date.getMinutes());
+                const ss = pad(date.getSeconds());
+                timeText.textContent = `${hh}:${mm}:${ss}`;
+                timeText.setAttribute('aria-label', `当前时间 ${parseInt(hh, 10)} 点 ${parseInt(mm, 10)} 分 ${parseInt(ss, 10)} 秒`);
+            }
+
+            // 启动时钟：根据用户动画偏好选择平滑 rAF 或 每秒更新
+            let rafId = null;
+            let intervalId = null;
+
+            function startClock() {
+                // 先更新一次
+                updateHands(new Date());
+
+                // 根据系统偏好选择动画模式
+                const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+                if (prefersReduced) {
+                    // 偏好减少动画：每秒更新一次（以减少 CPU 消耗）
+                    cancelAnimationFrame(rafId);
+                    clearInterval(intervalId);
+                    // 尽量与秒边界对齐
+                    const now = new Date();
+                    const delay = 1000 - now.getMilliseconds();
+                    setTimeout(() => {
+                        updateHands(new Date());
+                        intervalId = setInterval(() => updateHands(new Date()), 1000);
+                    }, delay);
+                } else {
+                    // 平滑动画（requestAnimationFrame）
+                    clearInterval(intervalId);
+                    const loop = () => {
+                        updateHands(new Date());
+                        rafId = requestAnimationFrame(loop);
+                    };
+                    rafId = requestAnimationFrame(loop);
+                }
+            }
+
+            // 初始化并监听窗口尺寸变化
+            function init() {
+                buildFace();
+                startClock();
+            }
+
+            // 窗口尺寸变化时重建表盘（防止刻度/数字错位）
+            let resizeTimer = null;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    buildFace();
+                }, 150);
+            });
+
+            // 监听用户对 reduce-motion 的偏好改变
+            if (window.matchMedia) {
+                const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+                // 使用兼容性的事件添加方式
+                if (typeof mq.addEventListener === 'function') {
+                    mq.addEventListener('change', startClock);
+                } else if (typeof mq.addListener === 'function') {
+                    mq.addListener(startClock);
+                }
+            }
+
+            // 启动
+            init();
+        })();
+    </script>
+</body>
+
+</html>

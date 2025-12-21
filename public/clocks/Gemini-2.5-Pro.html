@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模拟时钟</title>
+    <style>
+        :root {
+            --clock-size: 300px;
+            --hand-color: #333;
+            --second-hand-color: #e74c3c;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            font-family: sans-serif;
+        }
+
+        .clock {
+            width: var(--clock-size);
+            height: var(--clock-size);
+            border: 8px solid var(--hand-color);
+            border-radius: 50%;
+            position: relative;
+            background-color: #fff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .clock-face {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            background-color: var(--hand-color);
+            border-radius: 4px;
+        }
+
+        .hour-hand {
+            width: 6px;
+            height: 25%;
+            transform: translateX(-50%) rotate(0deg);
+        }
+
+        .minute-hand {
+            width: 4px;
+            height: 35%;
+            transform: translateX(-50%) rotate(0deg);
+        }
+
+        .second-hand {
+            width: 2px;
+            height: 40%;
+            background-color: var(--second-hand-color);
+            transform: translateX(-50%) rotate(0deg);
+        }
+
+        .center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            background-color: var(--second-hand-color);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .number {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-size: calc(var(--clock-size) / 15);
+            font-weight: bold;
+            color: var(--hand-color);
+        }
+
+        .number1 { transform: rotate(30deg); }
+        .number2 { transform: rotate(60deg); }
+        .number3 { transform: rotate(90deg); }
+        .number4 { transform: rotate(120deg); }
+        .number5 { transform: rotate(150deg); }
+        .number6 { transform: rotate(180deg); }
+        .number7 { transform: rotate(210deg); }
+        .number8 { transform: rotate(240deg); }
+        .number9 { transform: rotate(270deg); }
+        .number10 { transform: rotate(300deg); }
+        .number11 { transform: rotate(330deg); }
+        .number12 { transform: rotate(0deg); }
+
+        .number > div {
+            display: inline-block;
+            padding-top: calc(var(--clock-size) * 0.05);
+        }
+
+        .number1 > div { transform: rotate(-30deg); }
+        .number2 > div { transform: rotate(-60deg); }
+        .number3 > div { transform: rotate(-90deg); }
+        .number4 > div { transform: rotate(-120deg); }
+        .number5 > div { transform: rotate(-150deg); }
+        .number6 > div { transform: rotate(-180deg); }
+        .number7 > div { transform: rotate(-210deg); }
+        .number8 > div { transform: rotate(-240deg); }
+        .number9 > div { transform: rotate(-270deg); }
+        .number10 > div { transform: rotate(-300deg); }
+        .number11 > div { transform: rotate(-330deg); }
+        .number12 > div { transform: rotate(0deg); }
+
+    </style>
+</head>
+<body>
+
+    <div class="clock">
+        <div class="clock-face">
+            <div class="number number1"><div>1</div></div>
+            <div class="number number2"><div>2</div></div>
+            <div class="number number3"><div>3</div></div>
+            <div class="number number4"><div>4</div></div>
+            <div class="number number5"><div>5</div></div>
+            <div class="number number6"><div>6</div></div>
+            <div class="number number7"><div>7</div></div>
+            <div class="number number8"><div>8</div></div>
+            <div class="number number9"><div>9</div></div>
+            <div class="number number10"><div>10</div></div>
+            <div class="number number11"><div>11</div></div>
+            <div class="number number12"><div>12</div></div>
+
+            <div class="hand hour-hand" data-hour-hand></div>
+            <div class="hand minute-hand" data-minute-hand></div>
+            <div class="hand second-hand" data-second-hand></div>
+            <div class="center-dot"></div>
+        </div>
+    </div>
+
+    <script>
+        const hourHand = document.querySelector('[data-hour-hand]');
+        const minuteHand = document.querySelector('[data-minute-hand]');
+        const secondHand = document.querySelector('[data-second-hand]');
+
+        function setClock() {
+            const now = new Date();
+            const seconds = now.getSeconds();
+            const minutes = now.getMinutes();
+            const hours = now.getHours();
+
+            // 秒针每秒转 360/60 = 6度
+            const secondsDegrees = seconds * 6;
+            
+            // 分针每分钟转 6度，同时每秒钟带动分针转 6/60 = 0.1度
+            const minutesDegrees = minutes * 6 + seconds * 0.1;
+            
+            // 时针每小时转 360/12 = 30度，同时每分钟带动时针转 30/60 = 0.5度
+            const hoursDegrees = (hours % 12) * 30 + minutes * 0.5;
+
+            // 应用旋转
+            // CSS 默认 0 度朝上，所以不需要额外加 90 度
+            secondHand.style.transform = `translateX(-50%) rotate(${secondsDegrees}deg)`;
+            minuteHand.style.transform = `translateX(-50%) rotate(${minutesDegrees}deg)`;
+            hourHand.style.transform = `translateX(-50%) rotate(${hoursDegrees}deg)`;
+        }
+
+        // 初始设置一次
+        setClock();
+
+        // 每秒更新
+        setInterval(setClock, 1000);
+    </script>
+
+</body>
+</html>

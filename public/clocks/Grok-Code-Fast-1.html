@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模拟时钟</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 2px solid #333;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="clock" width="400" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('clock');
+        const ctx = canvas.getContext('2d');
+        const radius = canvas.width / 2;
+        ctx.translate(radius, radius);
+
+        function drawClock() {
+            // 清空画布
+            ctx.clearRect(-radius, -radius, canvas.width, canvas.height);
+
+            // 画外圆
+            ctx.beginPath();
+            ctx.arc(0, 0, radius - 10, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // 画刻度
+            for (let i = 0; i < 60; i++) {
+                const angle = (i * Math.PI) / 30;
+                const x1 = Math.sin(angle) * (radius - 20);
+                const y1 = -Math.cos(angle) * (radius - 20);
+                const x2 = Math.sin(angle) * (radius - 30);
+                const y2 = -Math.cos(angle) * (radius - 30);
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = i % 5 === 0 ? '#333' : '#ccc';
+                ctx.lineWidth = i % 5 === 0 ? 3 : 1;
+                ctx.stroke();
+            }
+
+            // 画数字
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            for (let i = 1; i <= 12; i++) {
+                const angle = (i * Math.PI) / 6;
+                const x = Math.sin(angle) * (radius - 50);
+                const y = -Math.cos(angle) * (radius - 50);
+                ctx.fillText(i.toString(), x, y);
+            }
+
+            // 获取当前时间
+            const now = new Date();
+            const hour = now.getHours() % 12;
+            const minute = now.getMinutes();
+            const second = now.getSeconds();
+
+            // 画时针
+            const hourAngle = (hour * Math.PI) / 6 + (minute * Math.PI) / (6 * 60) + (second * Math.PI) / (360 * 60);
+            drawHand(hourAngle, radius * 0.5, 6, '#333');
+
+            // 画分针
+            const minuteAngle = (minute * Math.PI) / 30 + (second * Math.PI) / (30 * 60);
+            drawHand(minuteAngle, radius * 0.8, 4, '#333');
+
+            // 画秒针
+            const secondAngle = (second * Math.PI) / 30;
+            drawHand(secondAngle, radius * 0.9, 2, '#ff0000');
+        }
+
+        function drawHand(angle, length, width, color) {
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.sin(angle) * length, -Math.cos(angle) * length);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.stroke();
+        }
+
+        // 每秒更新时钟
+        setInterval(drawClock, 1000);
+        drawClock(); // 初始绘制
+    </script>
+</body>
+</html>
