@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模拟时钟 - Gemini 3.0 Flash</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #0f172a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .clock {
+            width: 300px;
+            height: 300px;
+            background: #1e293b;
+            border: 8px solid #38bdf8;
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .clock::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #38bdf8;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            border-radius: 10px;
+            transform: translateX(-50%);
+        }
+
+        .hour {
+            width: 8px;
+            height: 60px;
+            background: #f8fafc;
+            z-index: 3;
+        }
+
+        .minute {
+            width: 6px;
+            height: 90px;
+            background: #cbd5e1;
+            z-index: 4;
+        }
+
+        .second {
+            width: 2px;
+            height: 110px;
+            background: #f43f5e;
+            z-index: 5;
+        }
+
+        .marks {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .mark {
+            position: absolute;
+            width: 2px;
+            height: 10px;
+            background: #475569;
+            left: 50%;
+            transform-origin: 0 150px;
+        }
+    </style>
+</head>
+<body>
+    <div class="clock">
+        <div class="marks" id="marks"></div>
+        <div class="hand hour" id="hour"></div>
+        <div class="hand minute" id="minute"></div>
+        <div class="hand second" id="second"></div>
+    </div>
+
+    <script>
+        const hourHand = document.getElementById('hour');
+        const minuteHand = document.getElementById('minute');
+        const secondHand = document.getElementById('second');
+        const marksContainer = document.getElementById('marks');
+
+        for (let i = 0; i < 60; i++) {
+            const mark = document.createElement('div');
+            mark.className = 'mark';
+            mark.style.transform = `rotate(${i * 6}deg)`;
+            if (i % 5 === 0) {
+                mark.style.height = '15px';
+                mark.style.width = '4px';
+                mark.style.background = '#38bdf8';
+            }
+            marksContainer.appendChild(mark);
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const seconds = now.getSeconds();
+            const minutes = now.getMinutes();
+            const hours = now.getHours();
+
+            const secondDeg = (seconds / 60) * 360;
+            const minuteDeg = (minutes / 60) * 360 + (seconds / 60) * 6;
+            const hourDeg = (hours % 12 / 12) * 360 + (minutes / 60) * 30;
+
+            secondHand.style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
+            minuteHand.style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
+            hourHand.style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>

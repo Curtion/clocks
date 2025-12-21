@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>模拟时钟</title>
+  <style>
+    :root {
+      --size: min(78vmin, 560px);
+      --bg: #0b1220;
+      --rim: #1f2a44;
+      --face1: #0e1628;
+      --face2: #0b1220;
+      --tick: #c8d2ff;
+      --tick-strong: #ffffff;
+      --numeral: #d9e2ff;
+      --hour: #e9eefc;
+      --minute: #b7c5ff;
+      --second: #ff4d6d;
+      --center: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: radial-gradient(1200px 800px at 50% 40%, #101827 0%, #0b1220 50%, #050910 100%);
+      color: #e5e7eb;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    .wrap {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 2rem;
+    }
+
+    .clock {
+      position: relative;
+      width: var(--size);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background:
+        radial-gradient(60% 60% at 50% 50%, rgba(255,255,255,0.04), transparent 60%),
+        radial-gradient(100% 100% at 50% 50%, var(--face1), var(--face2));
+      border: 10px solid var(--rim);
+      box-shadow:
+        0 30px 80px rgba(0,0,0,0.6),
+        inset 0 0 0 2px rgba(255,255,255,0.06),
+        inset 0 0 60px rgba(0,0,0,0.35);
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    /* 外圈发光 */
+    .clock::before {
+      content: "";
+      position: absolute;
+      inset: -20%;
+      background: radial-gradient(50% 50% at 50% 50%, rgba(96,165,250,0.06), transparent 60%);
+      z-index: 0;
+      pointer-events: none;
+      filter: blur(8px);
+    }
+
+    /* 轨道（用于对齐手针根部） */
+    .pivot-track {
+      position: absolute;
+      width: 34%;
+      height: 34%;
+      border-radius: 50%;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(closest-side, rgba(255,255,255,0.04), transparent 80%);
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    /* 刻度（主/次） */
+    .ticks {
+      position: absolute;
+      inset: 4%;
+      border-radius: 50%;
+      z-index: 1;
+      background:
+        /* 次刻度 */
+        repeating-conic-gradient(
+          from -90deg,
+          transparent 0deg 5.5deg,
+          rgba(255,255,255,0.07) 5.5deg 6deg
+        ),
+        /* 主刻度（12个） */
+        repeating-conic-gradient(
+          from -90deg,
+          var(--tick) 0deg 1deg,
+          transparent 1deg 30deg
+        );
+      mask: radial-gradient(closest-side, transparent 52%, #000 52.1% 100%);
+      -webkit-mask: radial-gradient(closest-side, transparent 52%, #000 52.1% 100%);
+    }
+
+    /* 数字 */
+    .numeral {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--numeral);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-shadow: 0 1px 0 rgba(0,0,0,0.3);
+      user-select: none;
+      z-index: 2;
+      font-size: calc(var(--size) * 0.12);
+    }
+    .numeral.n12 { transform: translate(-50%, -50%) translateY(calc(-1 * (var(--size) * 0.38))); }
+    .numeral.n3  { transform: translate(-50%, -50%) translateX(calc(var(--size) * 0.38)); }
+    .numeral.n6  { transform: translate(-50%, -50%) translateY(calc(var(--size) * 0.38)); }
+    .numeral.n9  { transform: translate(-50%, -50%) translateX(calc(-1 * (var(--size) * 0.38))); }
+
+    /* 指针 */
+    .hand {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform-origin: 50% calc(100% - 6px); /* 距底部约6px处旋转，根部留一点枢轴空间 */
+      transform: translate(-50%, -100%) rotate(var(--angle, 0deg));
+      border-radius: 999px;
+      z-index: 3;
+      will-change: transform;
+    }
+    .hand.hour {
+      width: calc(var(--size) * 0.035);
+      height: calc(var(--size) * 0.28);
+      background: linear-gradient(180deg, var(--hour), #c7d4ff);
+      box-shadow: 0 0 0.5px rgba(255,255,255,0.8), 0 4px 10px rgba(0,0,0,0.4);
+    }
+    .hand.minute {
+      width: calc(var(--size) * 0.025);
+      height: calc(var(--size) * 0.38);
+      background: linear-gradient(180deg, var(--minute), #9fb1ff);
+      box-shadow: 0 0 0.5px rgba(255,255,255,0.7), 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .hand.second {
+      width: calc(var(--size) * 0.015);
+      height: calc(var(--size) * 0.44);
+      background: linear-gradient(180deg, var(--second), #ff99aa);
+      box-shadow: 0 0 6px rgba(255,77,109,0.65), 0 4px 12px rgba(0,0,0,0.45);
+      transition: transform 0.05s linear; /* 微平滑，防止60Hz刷新下抖动 */
+    }
+
+    /* 中心圆盖 */
+    .center-cap {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: calc(var(--size) * 0.07);
+      aspect-ratio: 1;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(closest-side, #ffffff, #dbe5ff 65%, #93a7ff 100%);
+      box-shadow: 0 0 10px rgba(255,255,255,0.35), 0 2px 12px rgba(0,0,0,0.6);
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    /* 数字钟（可选） */
+    .digital {
+      margin-top: 1rem;
+      font-size: calc(var(--size) * 0.06);
+      font-variant-numeric: tabular-nums;
+      color: #c7d2fe;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.45);
+      letter-spacing: 0.08em;
+      user-select: none;
+    }
+
+    /* 让时钟在小屏下也清晰 */
+    @media (max-width: 420px) {
+      .digital { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="clock" role="img" aria-label="模拟时钟，显示当前本地时间">
+      <div class="ticks"></div>
+
+      <div class="numeral n12">12</div>
+      <div class="numeral n3">3</div>
+      <div class="numeral n6">6</div>
+      <div class="numeral n9">9</div>
+
+      <div class="hand hour" id="hour-hand" style="--angle: 0deg;"></div>
+      <div class="hand minute" id="minute-hand" style="--angle: 0deg;"></div>
+      <div class="hand second" id="second-hand" style="--angle: 0deg;"></div>
+
+      <div class="pivot-track"></div>
+      <div class="center-cap"></div>
+    </div>
+
+    <div class="digital" id="digital" aria-live="polite"></div>
+  </div>
+
+  <script>
+    (function () {
+      const hourHand = document.getElementById('hour-hand');
+      const minuteHand = document.getElementById('minute-hand');
+      const secondHand = document.getElementById('second-hand');
+      const digital = document.getElementById('digital');
+
+      const clamp2 = n => String(n).padStart(2, '0');
+
+      function setHand(el, angle) {
+        el.style.setProperty('--angle', angle + 'deg');
+      }
+
+      function update(now = new Date()) {
+        const ms = now.getMilliseconds();
+        const s = now.getSeconds() + ms / 1000;
+        const m = now.getMinutes() + s / 60;
+        const h = (now.getHours() % 12) + m / 60;
+
+        const sAngle = s * 6;        // 每秒 6°
+        const mAngle = m * 6;        // 每分钟 6°
+        const hAngle = h * 30;       // 每小时 30°
+
+        setHand(secondHand, sAngle);
+        setHand(minuteHand, mAngle);
+        setHand(hourHand, hAngle);
+
+        // 可选：数字钟
+        digital.textContent =
+          clamp2(now.getHours()) + ':' +
+          clamp2(now.getMinutes()) + ':' +
+          clamp2(now.getSeconds());
+      }
+
+      // 初始一次
+      update();
+
+      // 使用 rAF 跟随系统时间，保证平滑且准确
+      let rafId = null;
+      function tick() {
+        update();
+        rafId = requestAnimationFrame(tick);
+      }
+      rafId = requestAnimationFrame(tick);
+
+      // 标签页隐藏时降低刷新频率，显示时恢复
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          if (rafId) cancelAnimationFrame(rafId);
+          setInterval(update, 1000); // 隐藏时每秒更新一次即可
+        } else {
+          if (rafId) cancelAnimationFrame(rafId);
+          rafId = requestAnimationFrame(tick);
+        }
+      });
+
+      // 窗口大小改变时，数字字体/布局由 CSS 控制，无需额外处理
+      // 仅在页面加载后立刻校准一次，避免潜在的系统时间偏差
+      setTimeout(() => update(), 50);
+    })();
+  </script>
+</body>
+</html>

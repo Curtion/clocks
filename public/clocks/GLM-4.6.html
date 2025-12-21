@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模拟时钟</title>
+    <style>
+        #clock {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        #clock-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #hour-hand {
+            position: absolute;
+            width: 6px;
+            height: 80px;
+            background-color: #333;
+            top: 50%;
+            left: 50%;
+            margin-left: -3px;
+            margin-top: -10px;
+            transform-origin: bottom center;
+            border-radius: 3px;
+        }
+        #minute-hand {
+            position: absolute;
+            width: 4px;
+            height: 100px;
+            background-color: #666;
+            top: 50%;
+            left: 50%;
+            margin-left: -2px;
+            margin-top: -12px;
+            transform-origin: bottom center;
+            border-radius: 2px;
+        }
+        #second-hand {
+            position: absolute;
+            width: 2px;
+            height: 110px;
+            background-color: #ff0000;
+            top: 50%;
+            left: 50%;
+            margin-left: -1px;
+            margin-top: -13px;
+            transform-origin: bottom center;
+            border-radius: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div id="clock">
+        <div id="clock-face"></div>
+        <div id="hour-hand"></div>
+        <div id="minute-hand"></div>
+        <div id="second-hand"></div>
+    </div>
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+
+            const hourDegrees = (hours % 12) * 30 + minutes * 0.5;
+            const minuteDegrees = minutes * 6 + seconds * 0.1;
+            const secondDegrees = seconds * 6;
+
+            document.getElementById('hour-hand').style.transform = `rotate(${hourDegrees}deg)`;
+            document.getElementById('minute-hand').style.transform = `rotate(${minuteDegrees}deg)`;
+            document.getElementById('second-hand').style.transform = `rotate(${secondDegrees}deg)`;
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>
