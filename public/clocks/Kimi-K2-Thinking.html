@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模拟时钟</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        .clock-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            filter: drop-shadow(0 0 20px rgba(0, 195, 255, 0.5));
+        }
+
+        .clock {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                        inset 0 0 20px rgba(0, 195, 255, 0.1);
+        }
+
+        .clock-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+        }
+
+        .number {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 0 10px rgba(0, 195, 255, 0.7);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .tick {
+            position: absolute;
+            width: 2px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.7);
+            left: 50%;
+            transform-origin: bottom center;
+            box-shadow: 0 0 5px rgba(0, 195, 255, 0.5);
+        }
+
+        .tick.major {
+            height: 15px;
+            width: 3px;
+            background: rgba(0, 195, 255, 0.9);
+            box-shadow: 0 0 8px rgba(0, 195, 255, 0.8);
+        }
+
+        .hand {
+            position: absolute;
+            left: 50%;
+            bottom: 50%;
+            transform-origin: bottom center;
+            border-radius: 10px;
+            transition: transform 0.5s cubic-bezier(0.4, 2.3, 0.3, 1);
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .hour-hand {
+            width: 6px;
+            height: 80px;
+            background: linear-gradient(to top, #00c3ff, #0077ff);
+            margin-left: -3px;
+            z-index: 3;
+        }
+
+        .minute-hand {
+            width: 4px;
+            height: 110px;
+            background: linear-gradient(to top, #00ffcc, #00c3ff);
+            margin-left: -2px;
+            z-index: 2;
+        }
+
+        .second-hand {
+            width: 2px;
+            height: 120px;
+            background: linear-gradient(to top, #ff00aa, #ff5500);
+            margin-left: -1px;
+            z-index: 1;
+            box-shadow: 0 0 10px rgba(255, 0, 170, 0.7);
+        }
+
+        .center-dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #00c3ff;
+            border-radius: 50%;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(0, 195, 255, 0.8);
+        }
+
+        .digital-time {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            box-shadow: 0 0 15px rgba(0, 195, 255, 0.3);
+        }
+
+        .date-display {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.8);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 6px 12px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            box-shadow: 0 0 10px rgba(0, 195, 255, 0.2);
+        }
+
+        .title {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 0 15px rgba(0, 195, 255, 0.7);
+            font-weight: 300;
+            letter-spacing: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">模拟时钟</div>
+    
+    <div class="clock-container">
+        <div class="clock">
+            <div class="clock-face">
+                <!-- 时钟刻度 -->
+                <div class="ticks" id="ticks"></div>
+                
+                <!-- 时钟数字 -->
+                <div class="numbers" id="numbers"></div>
+                
+                <!-- 时针、分针、秒针 -->
+                <div class="hand hour-hand" id="hourHand"></div>
+                <div class="hand minute-hand" id="minuteHand"></div>
+                <div class="hand second-hand" id="secondHand"></div>
+                
+                <!-- 中心点 -->
+                <div class="center-dot"></div>
+                
+                <!-- 数字时间显示 -->
+                <div class="digital-time" id="digitalTime"></div>
+                
+                <!-- 日期显示 -->
+                <div class="date-display" id="dateDisplay"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 创建时钟刻度和数字
+        function createClockFace() {
+            const ticksContainer = document.getElementById('ticks');
+            const numbersContainer = document.getElementById('numbers');
+            
+            // 创建60个刻度（12个主要刻度和48个次要刻度）
+            for (let i = 0; i < 60; i++) {
+                const tick = document.createElement('div');
+                tick.className = i % 5 === 0 ? 'tick major' : 'tick';
+                tick.style.transform = `rotate(${i * 6}deg) translateX(-50%)`;
+                ticksContainer.appendChild(tick);
+            }
+            
+            // 创建12个数字
+            const numbers = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+            numbers.forEach((num, index) => {
+                const numberDiv = document.createElement('div');
+                numberDiv.className = 'number';
+                numberDiv.textContent = num;
+                
+                // 计算数字位置
+                const angle = (index * 30 - 90) * Math.PI / 180;
+                const x = Math.cos(angle) * 110 + 150;
+                const y = Math.sin(angle) * 110 + 150;
+                
+                numberDiv.style.left = (x - 20) + 'px';
+                numberDiv.style.top = (y - 20) + 'px';
+                
+                numbersContainer.appendChild(numberDiv);
+            });
+        }
+
+        // 更新时钟
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            const milliseconds = now.getMilliseconds();
+            
+            // 计算角度（考虑平滑过渡）
+            const secondAngle = (seconds + milliseconds / 1000) * 6 - 90;
+            const minuteAngle = (minutes + seconds / 60) * 6 - 90;
+            const hourAngle = ((hours % 12) + minutes / 60) * 30 - 90;
+            
+            // 更新指针
+            document.getElementById('secondHand').style.transform = `rotate(${secondAngle}deg)`;
+            document.getElementById('minuteHand').style.transform = `rotate(${minuteAngle}deg)`;
+            document.getElementById('hourHand').style.transform = `rotate(${hourAngle}deg)`;
+            
+            // 更新数字时间
+            const digitalTime = document.getElementById('digitalTime');
+            const timeString = now.toLocaleTimeString('zh-CN', {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            digitalTime.textContent = timeString;
+            
+            // 更新日期
+            const dateDisplay = document.getElementById('dateDisplay');
+            const dateString = now.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            });
+            dateDisplay.textContent = dateString;
+        }
+
+        // 初始化时钟
+        function initClock() {
+            createClockFace();
+            updateClock();
+            
+            // 使用 requestAnimationFrame 实现更流畅的动画
+            function animate() {
+                updateClock();
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // 页面加载完成后初始化时钟
+        document.addEventListener('DOMContentLoaded', initClock);
+
+        // 防止在每秒结束时指针回跳
+        const secondHand = document.getElementById('secondHand');
+        setInterval(() => {
+            const now = new Date();
+            if (now.getSeconds() === 0) {
+                secondHand.style.transition = 'none';
+                setTimeout(() => {
+                    secondHand.style.transition = 'transform 0.5s cubic-bezier(0.4, 2.3, 0.3, 1)';
+                }, 100);
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
