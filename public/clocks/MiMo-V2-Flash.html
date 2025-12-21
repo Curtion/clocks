@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模拟时钟</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .title {
+            color: #fff;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .clock {
+            position: relative;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle at center, #1e3c72 0%, #2a5298 100%);
+            border-radius: 50%;
+            box-shadow:
+                0 0 30px rgba(0, 0, 0, 0.5),
+                inset 0 0 20px rgba(0, 0, 0, 0.7),
+                inset 0 0 40px rgba(42, 82, 152, 0.4);
+            margin: 0 auto;
+            border: 8px solid #0f3460;
+        }
+
+        .clock::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: #e94560;
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(233, 69, 96, 0.7);
+        }
+
+        /* 时钟刻度 */
+        .clock .marking {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .clock .marking::before,
+        .clock .marking::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 2px;
+        }
+
+        .clock .marking::after {
+            top: auto;
+            bottom: 15px;
+        }
+
+        .clock .marking {
+            transform: rotate(30deg);
+        }
+
+        .clock .marking:nth-child(2) {
+            transform: rotate(60deg);
+        }
+
+        .clock .marking:nth-child(3) {
+            transform: rotate(120deg);
+        }
+
+        .clock .marking:nth-child(4) {
+            transform: rotate(150deg);
+        }
+
+        /* 更多刻度 */
+        .clock .small-marking {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .clock .small-marking::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 1px;
+        }
+
+        .clock .small-marking {
+            transform: rotate(6deg);
+        }
+
+        .clock .small-marking:nth-child(5) { transform: rotate(12deg); }
+        .clock .small-marking:nth-child(6) { transform: rotate(18deg); }
+        .clock .small-marking:nth-child(7) { transform: rotate(24deg); }
+        .clock .small-marking:nth-child(8) { transform: rotate(36deg); }
+        .clock .small-marking:nth-child(9) { transform: rotate(42deg); }
+        .clock .small-marking:nth-child(10) { transform: rotate(48deg); }
+        .clock .small-marking:nth-child(11) { transform: rotate(54deg); }
+        .clock .small-marking:nth-child(12) { transform: rotate(66deg); }
+        .clock .small-marking:nth-child(13) { transform: rotate(72deg); }
+        .clock .small-marking:nth-child(14) { transform: rotate(78deg); }
+        .clock .small-marking:nth-child(15) { transform: rotate(84deg); }
+        .clock .small-marking:nth-child(16) { transform: rotate(96deg); }
+        .clock .small-marking:nth-child(17) { transform: rotate(102deg); }
+        .clock .small-marking:nth-child(18) { transform: rotate(108deg); }
+        .clock .small-marking:nth-child(19) { transform: rotate(114deg); }
+        .clock .small-marking:nth-child(20) { transform: rotate(126deg); }
+        .clock .small-marking:nth-child(21) { transform: rotate(132deg); }
+        .clock .small-marking:nth-child(22) { transform: rotate(138deg); }
+        .clock .small-marking:nth-child(23) { transform: rotate(144deg); }
+        .clock .small-marking:nth-child(24) { transform: rotate(156deg); }
+        .clock .small-marking:nth-child(25) { transform: rotate(162deg); }
+        .clock .small-marking:nth-child(26) { transform: rotate(168deg); }
+        .clock .small-marking:nth-child(27) { transform: rotate(174deg); }
+        .clock .small-marking:nth-child(28) { transform: rotate(186deg); }
+        .clock .small-marking:nth-child(29) { transform: rotate(192deg); }
+        .clock .small-marking:nth-child(30) { transform: rotate(198deg); }
+        .clock .small-marking:nth-child(31) { transform: rotate(204deg); }
+        .clock .small-marking:nth-child(32) { transform: rotate(216deg); }
+        .clock .small-marking:nth-child(33) { transform: rotate(222deg); }
+        .clock .small-marking:nth-child(34) { transform: rotate(228deg); }
+        .clock .small-marking:nth-child(35) { transform: rotate(234deg); }
+        .clock .small-marking:nth-child(36) { transform: rotate(246deg); }
+        .clock .small-marking:nth-child(37) { transform: rotate(252deg); }
+        .clock .small-marking:nth-child(38) { transform: rotate(258deg); }
+        .clock .small-marking:nth-child(39) { transform: rotate(264deg); }
+        .clock .small-marking:nth-child(40) { transform: rotate(276deg); }
+        .clock .small-marking:nth-child(41) { transform: rotate(282deg); }
+        .clock .small-marking:nth-child(42) { transform: rotate(288deg); }
+        .clock .small-marking:nth-child(43) { transform: rotate(294deg); }
+        .clock .small-marking:nth-child(44) { transform: rotate(306deg); }
+        .clock .small-marking:nth-child(45) { transform: rotate(312deg); }
+        .clock .small-marking:nth-child(46) { transform: rotate(318deg); }
+        .clock .small-marking:nth-child(47) { transform: rotate(324deg); }
+        .clock .small-marking:nth-child(48) { transform: rotate(336deg); }
+        .clock .small-marking:nth-child(49) { transform: rotate(342deg); }
+        .clock .small-marking:nth-child(50) { transform: rotate(348deg); }
+        .clock .small-marking:nth-child(51) { transform: rotate(354deg); }
+
+        /* 数字 */
+        .clock .number {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            text-align: center;
+            color: #fff;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .clock .number::before {
+            content: attr(data-number);
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .clock .number:nth-child(52) { transform: rotate(30deg); }
+        .clock .number:nth-child(53) { transform: rotate(60deg); }
+        .clock .number:nth-child(54) { transform: rotate(90deg); }
+        .clock .number:nth-child(55) { transform: rotate(120deg); }
+        .clock .number:nth-child(56) { transform: rotate(150deg); }
+        .clock .number:nth-child(57) { transform: rotate(180deg); }
+        .clock .number:nth-child(58) { transform: rotate(210deg); }
+        .clock .number:nth-child(59) { transform: rotate(240deg); }
+        .clock .number:nth-child(60) { transform: rotate(270deg); }
+        .clock .number:nth-child(61) { transform: rotate(300deg); }
+        .clock .number:nth-child(62) { transform: rotate(330deg); }
+
+        /* 指针 */
+        .hand {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            transform: translate(-50%, -100%) rotate(0deg);
+            border-radius: 10px;
+            z-index: 5;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .hour {
+            width: 10px;
+            height: 90px;
+            background: linear-gradient(to top, #e94560, #f8f9fa);
+            border: 1px solid #e94560;
+        }
+
+        .minute {
+            width: 6px;
+            height: 120px;
+            background: linear-gradient(to top, #0f3460, #f8f9fa);
+            border: 1px solid #0f3460;
+        }
+
+        .second {
+            width: 2px;
+            height: 150px;
+            background: linear-gradient(to top, #e94560, #f8f9fa);
+            border: 1px solid #e94560;
+            z-index: 6;
+        }
+
+        /* 时间显示 */
+        .digital-time {
+            color: #fff;
+            font-size: 2.2rem;
+            margin-top: 25px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.7);
+            background: rgba(15, 52, 96, 0.4);
+            padding: 12px 25px;
+            border-radius: 8px;
+            display: inline-block;
+            backdrop-filter: blur(5px);
+        }
+
+        .date-display {
+            color: #a0aec0;
+            font-size: 1.1rem;
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 480px) {
+            .clock {
+                width: 280px;
+                height: 280px;
+            }
+
+            .hour {
+                height: 70px;
+            }
+
+            .minute {
+                height: 95px;
+            }
+
+            .second {
+                height: 120px;
+            }
+
+            .title {
+                font-size: 1.8rem;
+            }
+
+            .digital-time {
+                font-size: 1.6rem;
+            }
+        }
+
+        /* 装饰元素 */
+        .decoration {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .circle:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            top: 10%;
+            left: 10%;
+            animation: float 15s infinite linear;
+        }
+
+        .circle:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            bottom: 15%;
+            right: 10%;
+            animation: float 18s infinite linear reverse;
+        }
+
+        .circle:nth-child(3) {
+            width: 60px;
+            height: 60px;
+            top: 20%;
+            right: 20%;
+            animation: float 12s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+
+        .credits {
+            color: #4a5568;
+            font-size: 0.9rem;
+            margin-top: 20px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="decoration">
+        <div class="circle"></div>
+        <div class="circle"></div>
+        <div class="circle"></div>
+    </div>
+
+    <div class="container">
+        <h1 class="title">精美模拟时钟</h1>
+
+        <div class="clock">
+            <!-- 刻度标记 -->
+            <div class="marking"></div>
+            <div class="marking"></div>
+            <div class="marking"></div>
+            <div class="marking"></div>
+
+            <!-- 小刻度 -->
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+            <div class="small-marking"></div>
+
+            <!-- 数字 -->
+            <div class="number" data-number="1"></div>
+            <div class="number" data-number="2"></div>
+            <div class="number" data-number="3"></div>
+            <div class="number" data-number="4"></div>
+            <div class="number" data-number="5"></div>
+            <div class="number" data-number="6"></div>
+            <div class="number" data-number="7"></div>
+            <div class="number" data-number="8"></div>
+            <div class="number" data-number="9"></div>
+            <div class="number" data-number="10"></div>
+            <div class="number" data-number="11"></div>
+            <div class="number" data-number="12"></div>
+
+            <!-- 指针 -->
+            <div class="hand hour" id="hour-hand"></div>
+            <div class="hand minute" id="minute-hand"></div>
+            <div class="hand second" id="second-hand"></div>
+        </div>
+
+        <div class="digital-time" id="digital-time">00:00:00</div>
+        <div class="date-display" id="date-display">2025年1月1日 星期三</div>
+
+        <div class="credits">纯HTML/CSS/JS实现，无外部依赖</div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+
+            // 获取时分秒
+            let hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            const milliseconds = now.getMilliseconds();
+
+            // 计算角度（考虑毫秒使指针平滑移动）
+            const smoothSeconds = seconds + milliseconds / 1000;
+            const smoothMinutes = minutes + smoothSeconds / 60;
+            const smoothHours = (hours % 12) + smoothMinutes / 60;
+
+            const secondAngle = smoothSeconds * 6; // 360/60 = 6度/秒
+            const minuteAngle = smoothMinutes * 6; // 360/60 = 6度/分钟
+            const hourAngle = smoothHours * 30;    // 360/12 = 30度/小时
+
+            // 更新指针位置
+            document.getElementById('second-hand').style.transform = `translate(-50%, -100%) rotate(${secondAngle}deg)`;
+            document.getElementById('minute-hand').style.transform = `translate(-50%, -100%) rotate(${minuteAngle}deg)`;
+            document.getElementById('hour-hand').style.transform = `translate(-50%, -100%) rotate(${hourAngle}deg)`;
+
+            // 更新数字时间显示
+            const displayHours = String(hours).padStart(2, '0');
+            const displayMinutes = String(minutes).padStart(2, '0');
+            const displaySeconds = String(seconds).padStart(2, '0');
+            document.getElementById('digital-time').textContent = `${displayHours}:${displayMinutes}:${displaySeconds}`;
+
+            // 更新日期
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const day = now.getDate();
+            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            const weekday = weekdays[now.getDay()];
+
+            document.getElementById('date-display').textContent = `${year}年${month}月${day}日 ${weekday}`;
+        }
+
+        // 初始调用
+        updateClock();
+
+        // 每秒更新一次
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>
