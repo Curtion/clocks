@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模拟时钟</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a2a3a, #0d1824);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            overflow: hidden;
+        }
+        
+        .clock-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+        }
+        
+        .clock {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle, #2c3e50, #1c2833);
+            box-shadow: 
+                0 0 30px rgba(0, 0, 0, 0.7),
+                inset 0 0 20px rgba(0, 0, 0, 0.5),
+                inset 0 0 30px rgba(255, 255, 255, 0.05);
+            border: 8px solid #34495e;
+        }
+        
+        .center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: #e74c3c;
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+        }
+        
+        .hour-hand, .minute-hand, .second-hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            border-radius: 4px 4px 0 0;
+            transform: translateX(-50%) rotate(0deg);
+        }
+        
+        .hour-hand {
+            width: 8px;
+            height: 100px;
+            background: linear-gradient(to top, #ecf0f1, #bdc3c7);
+            z-index: 3;
+        }
+        
+        .minute-hand {
+            width: 6px;
+            height: 140px;
+            background: linear-gradient(to top, #ecf0f1, #95a5a6);
+            z-index: 2;
+        }
+        
+        .second-hand {
+            width: 3px;
+            height: 160px;
+            background: linear-gradient(to top, #e74c3c, #c0392b);
+            z-index: 1;
+        }
+        
+        .number {
+            position: absolute;
+            color: #ecf0f1;
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .hour-mark {
+            position: absolute;
+            background: #ecf0f1;
+            border-radius: 2px;
+        }
+        
+        .hour-mark.main {
+            width: 4px;
+            height: 20px;
+        }
+        
+        .hour-mark.minor {
+            width: 2px;
+            height: 10px;
+        }
+        
+        .digital-time {
+            position: absolute;
+            top: calc(100% + 30px);
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ecf0f1;
+            font-size: 24px;
+            font-family: 'Courier New', monospace;
+            background: rgba(44, 62, 80, 0.8);
+            padding: 10px 20px;
+            border-radius: 10px;
+            letter-spacing: 2px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .clock-title {
+            position: absolute;
+            bottom: calc(100% + 20px);
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ecf0f1;
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 500px) {
+            .clock-container {
+                width: 300px;
+                height: 300px;
+            }
+            
+            .hour-hand { height: 75px; }
+            .minute-hand { height: 105px; }
+            .second-hand { height: 120px; }
+            
+            .number { font-size: 22px; }
+            .digital-time { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="clock-container">
+        <div class="clock-title">模拟时钟</div>
+        <div class="clock">
+            <div class="center-dot"></div>
+            <div class="hour-hand" id="hour-hand"></div>
+            <div class="minute-hand" id="minute-hand"></div>
+            <div class="second-hand" id="second-hand"></div>
+        </div>
+        <div class="digital-time" id="digital-time"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hourHand = document.getElementById('hour-hand');
+            const minuteHand = document.getElementById('minute-hand');
+            const secondHand = document.getElementById('second-hand');
+            const digitalTime = document.getElementById('digital-time');
+            const clock = document.querySelector('.clock');
+            
+            // 创建小时数字和刻度
+            for (let i = 1; i <= 12; i++) {
+                // 小时数字
+                const number = document.createElement('div');
+                number.className = 'number';
+                number.textContent = i;
+                
+                // 计算位置
+                const angle = (i - 3) * 30 * (Math.PI / 180);
+                const radius = 170;
+                const x = 200 + radius * Math.cos(angle);
+                const y = 200 + radius * Math.sin(angle);
+                
+                number.style.left = `${x}px`;
+                number.style.top = `${y}px`;
+                number.style.transform = `translate(-50%, -50%)`;
+                
+                clock.appendChild(number);
+                
+                // 主要小时刻度
+                const mainMark = document.createElement('div');
+                mainMark.className = 'hour-mark main';
+                
+                const markRadius = 190;
+                const markX = 200 + markRadius * Math.cos(angle);
+                const markY = 200 + markRadius * Math.sin(angle);
+                
+                mainMark.style.left = `${markX}px`;
+                mainMark.style.top = `${markY}px`;
+                mainMark.style.transform = `translate(-50%, -50%) rotate(${angle + Math.PI/2}rad)`;
+                
+                clock.appendChild(mainMark);
+                
+                // 创建分钟刻度
+                if (i <= 11) {
+                    for (let j = 1; j <= 4; j++) {
+                        const minorAngle = angle + (j * 6) * (Math.PI / 180);
+                        const minorMark = document.createElement('div');
+                        minorMark.className = 'hour-mark minor';
+                        
+                        const minorMarkX = 200 + markRadius * Math.cos(minorAngle);
+                        const minorMarkY = 200 + markRadius * Math.sin(minorAngle);
+                        
+                        minorMark.style.left = `${minorMarkX}px`;
+                        minorMark.style.top = `${minorMarkY}px`;
+                        minorMark.style.transform = `translate(-50%, -50%) rotate(${minorAngle + Math.PI/2}rad)`;
+                        
+                        clock.appendChild(minorMark);
+                    }
+                }
+            }
+            
+            function updateClock() {
+                const now = new Date();
+                
+                // 获取时间组成部分
+                const hours = now.getHours();
+                const minutes = now.getMinutes();
+                const seconds = now.getSeconds();
+                const milliseconds = now.getMilliseconds();
+                
+                // 计算角度
+                const secondAngle = (seconds + milliseconds / 1000) * 6; // 360/60 = 6度每秒
+                const minuteAngle = (minutes + seconds / 60) * 6; // 360/60 = 6度每分
+                const hourAngle = (hours % 12 + minutes / 60) * 30; // 360/12 = 30度每小时
+                
+                // 应用旋转
+                secondHand.style.transform = `translateX(-50%) rotate(${secondAngle}deg)`;
+                minuteHand.style.transform = `translateX(-50%) rotate(${minuteAngle}deg)`;
+                hourHand.style.transform = `translateX(-50%) rotate(${hourAngle}deg)`;
+                
+                // 更新数字时间
+                const formattedHours = hours.toString().padStart(2, '0');
+                const formattedMinutes = minutes.toString().padStart(2, '0');
+                const formattedSeconds = seconds.toString().padStart(2, '0');
+                digitalTime.textContent = `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+            }
+            
+            // 初始更新
+            updateClock();
+            
+            // 每10毫秒更新一次以获得平滑的秒针运动
+            setInterval(updateClock, 10);
+            
+            // 添加窗口大小调整监听
+            window.addEventListener('resize', function() {
+                const container = document.querySelector('.clock-container');
+                const size = Math.min(window.innerWidth, window.innerHeight) * 0.8;
+                container.style.width = `${Math.min(size, 400)}px`;
+                container.style.height = `${Math.min(size, 400)}px`;
+            });
+            
+            // 触发一次resize事件以初始化大小
+            window.dispatchEvent(new Event('resize'));
+        });
+    </script>
+</body>
+</html>
