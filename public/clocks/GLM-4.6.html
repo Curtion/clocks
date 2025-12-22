@@ -5,88 +5,296 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>模拟时钟</title>
     <style>
-        #clock {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+        }
+
+        .clock-container {
             position: relative;
             width: 300px;
             height: 300px;
-            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 50%;
-            background-color: #f0f0f0;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-        }
-        #clock-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background-color: #fff;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
+                        inset 0 0 30px rgba(0, 0, 0, 0.1);
             display: flex;
             justify-content: center;
             align-items: center;
         }
-        #hour-hand {
+
+        .clock-face {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #f0f0f0, #ffffff);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .number {
             position: absolute;
-            width: 6px;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .number span {
+            display: inline-block;
+            transform-origin: center;
+        }
+
+        .number1 { transform: rotate(30deg); }
+        .number1 span { transform: rotate(-30deg); }
+        .number2 { transform: rotate(60deg); }
+        .number2 span { transform: rotate(-60deg); }
+        .number3 { transform: rotate(90deg); }
+        .number3 span { transform: rotate(-90deg); }
+        .number4 { transform: rotate(120deg); }
+        .number4 span { transform: rotate(-120deg); }
+        .number5 { transform: rotate(150deg); }
+        .number5 span { transform: rotate(-150deg); }
+        .number6 { transform: rotate(180deg); }
+        .number6 span { transform: rotate(-180deg); }
+        .number7 { transform: rotate(210deg); }
+        .number7 span { transform: rotate(-210deg); }
+        .number8 { transform: rotate(240deg); }
+        .number8 span { transform: rotate(-240deg); }
+        .number9 { transform: rotate(270deg); }
+        .number9 span { transform: rotate(-270deg); }
+        .number10 { transform: rotate(300deg); }
+        .number10 span { transform: rotate(-300deg); }
+        .number11 { transform: rotate(330deg); }
+        .number11 span { transform: rotate(-330deg); }
+
+        .number12 {
+            transform: rotate(0deg);
+        }
+
+        .number12 span {
+            transform: rotate(0deg);
+        }
+
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: 50% 100%;
+            border-radius: 10px;
+            transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+
+        .hour-hand {
+            width: 8px;
             height: 80px;
-            background-color: #333;
-            top: 50%;
-            left: 50%;
+            background: linear-gradient(to top, #333 0%, #555 100%);
+            margin-left: -4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .minute-hand {
+            width: 6px;
+            height: 110px;
+            background: linear-gradient(to top, #666 0%, #888 100%);
             margin-left: -3px;
-            margin-top: -10px;
-            transform-origin: bottom center;
-            border-radius: 3px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
-        #minute-hand {
+
+        .second-hand {
+            width: 3px;
+            height: 120px;
+            background: linear-gradient(to top, #e74c3c 0%, #c0392b 100%);
+            margin-left: -1.5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .center-dot {
             position: absolute;
-            width: 4px;
-            height: 100px;
-            background-color: #666;
             top: 50%;
             left: 50%;
-            margin-left: -2px;
-            margin-top: -12px;
-            transform-origin: bottom center;
-            border-radius: 2px;
+            width: 16px;
+            height: 16px;
+            background: radial-gradient(circle, #333 0%, #666 100%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
-        #second-hand {
+
+        .tick {
             position: absolute;
             width: 2px;
-            height: 110px;
-            background-color: #ff0000;
-            top: 50%;
+            height: 10px;
+            background: #999;
             left: 50%;
+            transform-origin: 50% 140px;
             margin-left: -1px;
-            margin-top: -13px;
-            transform-origin: bottom center;
-            border-radius: 1px;
+        }
+
+        .tick.major {
+            width: 3px;
+            height: 15px;
+            background: #666;
+            margin-left: -1.5px;
+        }
+
+        .digital-time {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 16px;
+            border-radius: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-family: 'Courier New', monospace;
+        }
+
+        @media (max-width: 400px) {
+            .clock-container {
+                width: 250px;
+                height: 250px;
+            }
+
+            .clock-face {
+                width: 230px;
+                height: 230px;
+            }
+
+            .number {
+                font-size: 16px;
+            }
+
+            .hour-hand {
+                height: 65px;
+            }
+
+            .minute-hand {
+                height: 90px;
+            }
+
+            .second-hand {
+                height: 100px;
+            }
+
+            .tick {
+                transform-origin: 50% 115px;
+            }
+
+            .digital-time {
+                font-size: 14px;
+                bottom: 60px;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="clock">
-        <div id="clock-face"></div>
-        <div id="hour-hand"></div>
-        <div id="minute-hand"></div>
-        <div id="second-hand"></div>
+    <div class="clock-container">
+        <div class="clock-face">
+            <!-- 时钟刻度 -->
+            <div id="ticks"></div>
+            
+            <!-- 时钟数字 -->
+            <div class="number number12"><span>12</span></div>
+            <div class="number number1"><span>1</span></div>
+            <div class="number number2"><span>2</span></div>
+            <div class="number number3"><span>3</span></div>
+            <div class="number number4"><span>4</span></div>
+            <div class="number number5"><span>5</span></div>
+            <div class="number number6"><span>6</span></div>
+            <div class="number number7"><span>7</span></div>
+            <div class="number number8"><span>8</span></div>
+            <div class="number number9"><span>9</span></div>
+            <div class="number number10"><span>10</span></div>
+            <div class="number number11"><span>11</span></div>
+            
+            <!-- 时钟指针 -->
+            <div class="hand hour-hand" id="hour-hand"></div>
+            <div class="hand minute-hand" id="minute-hand"></div>
+            <div class="hand second-hand" id="second-hand"></div>
+            
+            <!-- 中心点 -->
+            <div class="center-dot"></div>
+        </div>
+        
+        <!-- 数字时间显示 -->
+        <div class="digital-time" id="digital-time"></div>
     </div>
+
     <script>
+        // 创建时钟刻度
+        function createTicks() {
+            const ticksContainer = document.getElementById('ticks');
+            for (let i = 0; i < 60; i++) {
+                const tick = document.createElement('div');
+                tick.className = i % 5 === 0 ? 'tick major' : 'tick';
+                tick.style.transform = `rotate(${i * 6}deg)`;
+                ticksContainer.appendChild(tick);
+            }
+        }
+
+        // 更新时钟
         function updateClock() {
             const now = new Date();
             const hours = now.getHours();
             const minutes = now.getMinutes();
             const seconds = now.getSeconds();
+            const milliseconds = now.getMilliseconds();
 
-            const hourDegrees = (hours % 12) * 30 + minutes * 0.5;
-            const minuteDegrees = minutes * 6 + seconds * 0.1;
-            const secondDegrees = seconds * 6;
+            // 计算角度
+            const secondDegrees = ((seconds + milliseconds / 1000) * 6) - 90;
+            const minuteDegrees = ((minutes + seconds / 60) * 6) - 90;
+            const hourDegrees = ((hours % 12 + minutes / 60) * 30) - 90;
 
-            document.getElementById('hour-hand').style.transform = `rotate(${hourDegrees}deg)`;
-            document.getElementById('minute-hand').style.transform = `rotate(${minuteDegrees}deg)`;
+            // 更新指针位置
             document.getElementById('second-hand').style.transform = `rotate(${secondDegrees}deg)`;
+            document.getElementById('minute-hand').style.transform = `rotate(${minuteDegrees}deg)`;
+            document.getElementById('hour-hand').style.transform = `rotate(${hourDegrees}deg)`;
+
+            // 更新数字时间
+            const digitalTime = document.getElementById('digital-time');
+            digitalTime.textContent = now.toLocaleTimeString('zh-CN', {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
         }
 
+        // 初始化
+        createTicks();
         updateClock();
-        setInterval(updateClock, 1000);
+
+        // 每50毫秒更新一次，使秒针移动更平滑
+        setInterval(updateClock, 50);
+
+        // 页面可见性改变时更新时钟
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                updateClock();
+            }
+        });
+
+        // 窗口获得焦点时更新时钟
+        window.addEventListener('focus', function() {
+            updateClock();
+        });
     </script>
 </body>
 </html>
