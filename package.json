@@ -7,7 +7,6 @@
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
-    "build:static": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
   },
