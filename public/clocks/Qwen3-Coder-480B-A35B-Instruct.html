@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模拟时钟</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        
+        .clock-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+        }
+        
+        .clock {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 8px solid #333;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+            box-sizing: border-box;
+        }
+        
+        .clock-face {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            border-radius: 10px;
+        }
+        
+        .hour-hand {
+            width: 8px;
+            height: 70px;
+            background-color: #333;
+            margin-left: -4px;
+        }
+        
+        .minute-hand {
+            width: 6px;
+            height: 100px;
+            background-color: #666;
+            margin-left: -3px;
+        }
+        
+        .second-hand {
+            width: 2px;
+            height: 120px;
+            background-color: #f00;
+            margin-left: -1px;
+        }
+        
+        .center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            background-color: #333;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+        
+        .hour-mark {
+            position: absolute;
+            width: 4px;
+            height: 15px;
+            background-color: #333;
+            left: 50%;
+            margin-left: -2px;
+            transform-origin: 2px 150px;
+        }
+        
+        .hour-mark-12 {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .hour-mark-3 {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .hour-mark-6 {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .hour-mark-9 {
+            position: absolute;
+            top: 50%;
+            left: 10px;
+            transform: translateY(-50%);
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="clock-container">
+        <div class="clock">
+            <div class="clock-face">
+                <div class="hour-mark-12">12</div>
+                <div class="hour-mark-3">3</div>
+                <div class="hour-mark-6">6</div>
+                <div class="hour-mark-9">9</div>
+                
+                <!-- 绘制小时刻度线 -->
+                <script>
+                    document.write('<div class="hour-marks">');
+                    for (let i = 0; i < 12; i++) {
+                        if (i !== 0 && i !== 3 && i !== 6 && i !== 9) {
+                            document.write(`<div class="hour-mark" style="transform: rotate(${i * 30}deg);"></div>`);
+                        }
+                    }
+                    document.write('</div>');
+                </script>
+                
+                <div class="hand hour-hand"></div>
+                <div class="hand minute-hand"></div>
+                <div class="hand second-hand"></div>
+                <div class="center-circle"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours() % 12;
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            const milliseconds = now.getMilliseconds();
+            
+            // 计算时、分、秒针的角度
+            const hourDeg = (hours * 30) + (minutes * 0.5);
+            const minuteDeg = (minutes * 6) + (seconds * 0.1);
+            const secondDeg = (seconds * 6) + (milliseconds * 0.006);
+            
+            // 获取时钟指针元素
+            const hourHand = document.querySelector('.hour-hand');
+            const minuteHand = document.querySelector('.minute-hand');
+            const secondHand = document.querySelector('.second-hand');
+            
+            // 设置指针旋转角度
+            hourHand.style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+            minuteHand.style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
+            secondHand.style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
+        }
+        
+        // 初始化时钟
+        updateClock();
+        
+        // 每秒更新时钟
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>

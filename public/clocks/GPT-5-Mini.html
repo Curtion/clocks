@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>模拟时钟</title>
+  <style>
+    :root{
+      --size: clamp(240px, 40vmin, 520px);
+      --bg: linear-gradient(135deg,#0f1724 0%,#102a43 50%,#072540 100%);
+      --face-color: #fff;
+      --accent: #ef4444;
+      --hand-shadow: rgba(0,0,0,0.25);
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: var(--bg);
+      color: #fff;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .page{
+      min-height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:2rem;
+      box-sizing:border-box;
+    }
+
+    .clock {
+      width:var(--size);
+      height:var(--size);
+      border-radius:50%;
+      background:
+        radial-gradient(circle at 50% 48%, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.00) 35%),
+        conic-gradient(from 180deg at 50% 50%, rgba(255,255,255,0.02), rgba(0,0,0,0.02)),
+        rgba(255,255,255,0.02);
+      border: 8px solid rgba(255,255,255,0.06);
+      box-shadow:
+        0 10px 30px rgba(0,0,0,0.6),
+        inset 0 -8px 30px rgba(0,0,0,0.4);
+      position:relative;
+      display:block;
+      box-sizing:border-box;
+      padding:calc(var(--size) * 0.06);
+    }
+
+    /* clock face inner area */
+    .face {
+      position:relative;
+      width:100%;
+      height:100%;
+      border-radius:50%;
+      overflow:visible;
+      display:block;
+    }
+
+    /* ticks */
+    .ticks {
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+    }
+
+    .tick {
+      position:absolute;
+      left:50%;
+      top:6%;
+      width:2px;
+      height:calc(var(--size) * 0.04);
+      background:rgba(255,255,255,0.6);
+      transform-origin:50% 100%;
+      border-radius:2px;
+      opacity:0.9;
+    }
+
+    .tick.major {
+      width:4px;
+      height:calc(var(--size) * 0.06);
+      background:rgba(255,255,255,0.92);
+      left:50%;
+      border-radius:2px;
+    }
+
+    /* numbers */
+    .numbers {
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      display:block;
+    }
+
+    .numbers .num {
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform-origin:50% 50%;
+      font-weight:600;
+      font-size:calc(var(--size) * 0.07);
+      color:rgba(255,255,255,0.95);
+      user-select:none;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:2.2em;
+      height:1.2em;
+    }
+
+    /* hands container */
+    .hands {
+      position:absolute;
+      inset:0;
+      display:block;
+      pointer-events:none;
+    }
+
+    .hand {
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform-origin:50% 100%;
+      transform:translateX(-50%) translateY(-50%) rotate(0deg);
+      border-radius:4px;
+      box-shadow: 0 2px 6px var(--hand-shadow);
+    }
+
+    .hand.hour {
+      width:calc(var(--size) * 0.03);
+      height:calc(var(--size) * 0.28);
+      background: linear-gradient(180deg,#ffffff,#e6e6e6);
+      z-index:6;
+      border-radius:6px;
+      margin-top:calc(-1 * (var(--size) * 0.28) / 2);
+    }
+
+    .hand.minute {
+      width:calc(var(--size) * 0.02);
+      height:calc(var(--size) * 0.36);
+      background: linear-gradient(180deg,#ffffff,#f3f3f3);
+      z-index:7;
+      border-radius:4px;
+      margin-top:calc(-1 * (var(--size) * 0.36) / 2);
+    }
+
+    .hand.second {
+      width:calc(var(--size) * 0.012);
+      height:calc(var(--size) * 0.44);
+      background: linear-gradient(180deg, var(--accent), #ff6b6b);
+      z-index:8;
+      margin-top:calc(-1 * (var(--size) * 0.44) / 2);
+      box-shadow: 0 2px 8px rgba(239,68,68,0.4);
+    }
+
+    /* a slender tail for hands (so transform-origin at center-bottom remains) */
+    .hand::after{
+      content:"";
+      position:absolute;
+      left:50%;
+      bottom:0;
+      transform:translateX(-50%);
+      width:12px;
+      height:12px;
+      background:var(--face-color);
+      border-radius:50%;
+      z-index:20;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.45);
+    }
+
+    .center-dot {
+      position:absolute;
+      left:50%;
+      top:50%;
+      width:calc(var(--size) * 0.04);
+      height:calc(var(--size) * 0.04);
+      transform:translate(-50%,-50%);
+      background: radial-gradient(circle at 35% 30%, #fff, #ddd);
+      border-radius:50%;
+      z-index:30;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      border:2px solid rgba(0,0,0,0.15);
+    }
+
+    /* subtle dial rings */
+    .face::before, .face::after {
+      content:"";
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%);
+      border-radius:50%;
+      pointer-events:none;
+    }
+    .face::before{
+      width:94%;
+      height:94%;
+      border:1px solid rgba(255,255,255,0.03);
+      box-shadow: inset 0 6px 20px rgba(0,0,0,0.45);
+    }
+    .face::after{
+      width:70%;
+      height:70%;
+      border:1px solid rgba(255,255,255,0.02);
+      opacity:0.8;
+    }
+
+    /* responsive tweaks */
+    @media (max-width:420px){
+      .tick { height:calc(var(--size) * 0.06); }
+      .tick.major { height:calc(var(--size) * 0.08); }
+    }
+  </style>
+</head>
+<body>
+  <div class="page" role="application" aria-label="模拟时钟">
+    <div class="clock" aria-hidden="false">
+      <div class="face">
+        <div class="ticks" id="ticks"></div>
+        <div class="numbers" id="numbers"></div>
+        <div class="hands">
+          <div class="hand hour" id="hour"></div>
+          <div class="hand minute" id="minute"></div>
+          <div class="hand second" id="second"></div>
+        </div>
+        <div class="center-dot" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 创建刻度（60个）和12个数字
+    (function createFaceElements(){
+      const ticks = document.getElementById('ticks');
+      const numbers = document.getElementById('numbers');
+
+      for(let i=0;i<60;i++){
+        const t = document.createElement('div');
+        t.className = 'tick' + (i % 5 === 0 ? ' major' : '');
+        // 将刻度旋转到正确位置并向上偏移（top设置为6%，使用transform-origin）
+        t.style.transform = 'translateX(-50%) rotate(' + (i*6) + 'deg)';
+        ticks.appendChild(t);
+      }
+
+      for(let n=1;n<=12;n++){
+        const ang = n * 30; // 每小时30度
+        const el = document.createElement('div');
+        el.className = 'num';
+        // 先旋转容器，再将文本反向旋转以保持直立
+        // 使用 CSS calc 结合 var(--size) 来创建响应式半径
+        el.style.transform = 'translate(-50%,-50%) rotate(' + ang + 'deg) translateY(calc(-1 * (var(--size) / 2 - 28px)))';
+        const span = document.createElement('span');
+        span.textContent = n.toString();
+        span.style.display = 'inline-block';
+        span.style.transform = 'rotate(' + (-ang) + 'deg)';
+        el.appendChild(span);
+        numbers.appendChild(el);
+      }
+    })();
+
+    // 指针元素
+    const hourEl = document.getElementById('hour');
+    const minuteEl = document.getElementById('minute');
+    const secondEl = document.getElementById('second');
+
+    // 使用 requestAnimationFrame 实时并平滑更新指针（包含毫秒）
+    function updateClock(){
+      const now = new Date();
+      const ms = now.getMilliseconds();
+      const s = now.getSeconds() + ms / 1000;
+      const m = now.getMinutes() + s / 60;
+      const h = (now.getHours() % 12) + m / 60;
+
+      const hourDeg = h * 30; // 360 / 12
+      const minuteDeg = m * 6; // 360 / 60
+      const secondDeg = s * 6; // 360 / 60
+
+      // 因为 transform-origin 是底部，所以需要将元素旋转中心保持
+      hourEl.style.transform = 'translateX(-50%) translateY(-50%) rotate(' + hourDeg + 'deg)';
+      minuteEl.style.transform = 'translateX(-50%) translateY(-50%) rotate(' + minuteDeg + 'deg)';
+      secondEl.style.transform = 'translateX(-50%) translateY(-50%) rotate(' + secondDeg + 'deg)';
+
+      // 下一帧继续更新以保持准确和流畅
+      requestAnimationFrame(updateClock);
+    }
+
+    // 初始启动
+    requestAnimationFrame(updateClock);
+
+    // 为了确保在页面隐藏/恢复时仍然显示正确时间（例如切换标签页），在 visibilitychange 时强制刷新一次
+    document.addEventListener('visibilitychange', function(){
+      if (!document.hidden) {
+        // 立即同步一次时间
+        const now = new Date();
+        const ms = now.getMilliseconds();
+        const s = now.getSeconds() + ms / 1000;
+        const m = now.getMinutes() + s / 60;
+        const h = (now.getHours() % 12) + m / 60;
+        hourEl.style.transform = 'translateX(-50%) translateY(-50%) rotate(' + (h*30) + 'deg)';
+        minuteEl.style.transform = 'translateX(-50%) translateY(-50%) rotate(' + (m*6) + 'deg)';
+        secondEl.style.transform = 'translateX(-50%) translateY(-50%) rotate(' + (s*6) + 'deg)';
+      }
+    });
+
+    // 键盘无障碍：按空格或回车可朗读当前时间（辅助）
+    document.addEventListener('keydown', function(e){
+      if(e.code === 'Space' || e.code === 'Enter'){
+        e.preventDefault();
+        const now = new Date();
+        const hh = now.getHours();
+        const mm = now.getMinutes();
+        const ss = now.getSeconds();
+        const text = '当前时间 ' + hh + ' 点 ' + mm + ' 分 ' + ss + ' 秒';
+        if(window.speechSynthesis){
+          const utter = new SpeechSynthesisUtterance(text);
+          utter.lang = 'zh-CN';
+          window.speechSynthesis.cancel();
+          window.speechSynthesis.speak(utter);
+        } else {
+          // 若无语音支持，简单 alert（通常不会触发）
+          // alert(text);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
