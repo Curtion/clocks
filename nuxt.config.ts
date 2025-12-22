@@ -19,4 +19,10 @@ export default defineNuxtConfig({
   vite: {
     assetsInclude: ['**/*.html'],
   },
+  nitro: {
+    prerender: {
+      crawl: true,
+      routes: ['/']
+    }
+  }
 })
