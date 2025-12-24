@@ -8,6 +8,7 @@ export default defineEventHandler(async () => {
     const files = await readdir(publicDir)
 
     const htmlFiles = files.filter(file => file.endsWith('.html'))
+    htmlFiles.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
 
     return htmlFiles
   } catch (error) {
