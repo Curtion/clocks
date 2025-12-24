@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模拟时钟</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+
+        .clock {
+            width: 300px;
+            height: 300px;
+            border: 8px solid #e94560;
+            border-radius: 50%;
+            position: relative;
+            background: radial-gradient(circle, #ffffff 0%, #f0f0f0 100%);
+            box-shadow: 0 0 30px rgba(233, 69, 96, 0.5),
+                        inset 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .clock::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: #e94560;
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        .hour-marker {
+            position: absolute;
+            width: 4px;
+            height: 15px;
+            background: #333;
+            left: 50%;
+            transform-origin: center 150px;
+        }
+
+        .hour-marker:nth-child(1) { transform: translateX(-50%) rotate(0deg); }
+        .hour-marker:nth-child(2) { transform: translateX(-50%) rotate(30deg); }
+        .hour-marker:nth-child(3) { transform: translateX(-50%) rotate(60deg); }
+        .hour-marker:nth-child(4) { transform: translateX(-50%) rotate(90deg); }
+        .hour-marker:nth-child(5) { transform: translateX(-50%) rotate(120deg); }
+        .hour-marker:nth-child(6) { transform: translateX(-50%) rotate(150deg); }
+        .hour-marker:nth-child(7) { transform: translateX(-50%) rotate(180deg); }
+        .hour-marker:nth-child(8) { transform: translateX(-50%) rotate(210deg); }
+        .hour-marker:nth-child(9) { transform: translateX(-50%) rotate(240deg); }
+        .hour-marker:nth-child(10) { transform: translateX(-50%) rotate(270deg); }
+        .hour-marker:nth-child(11) { transform: translateX(-50%) rotate(300deg); }
+        .hour-marker:nth-child(12) { transform: translateX(-50%) rotate(330deg); }
+
+        .number {
+            position: absolute;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+        }
+
+        .number-12 { top: 10px; left: 50%; transform: translateX(-50%); }
+        .number-3 { top: 50%; right: 10px; transform: translateY(-50%); }
+        .number-6 { bottom: 10px; left: 50%; transform: translateX(-50%); }
+        .number-9 { top: 50%; left: 10px; transform: translateY(-50%); }
+
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            border-radius: 4px;
+        }
+
+        .hour {
+            width: 8px;
+            height: 70px;
+            background: linear-gradient(to top, #333, #555);
+            margin-left: -4px;
+            z-index: 3;
+        }
+
+        .minute {
+            width: 6px;
+            height: 100px;
+            background: linear-gradient(to top, #666, #888);
+            margin-left: -3px;
+            z-index: 2;
+        }
+
+        .second {
+            width: 4px;
+            height: 120px;
+            background: linear-gradient(to top, #e94560, #ff6b6b);
+            margin-left: -2px;
+            z-index: 1;
+        }
+
+        .digital-time {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            color: #333;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="clock">
+        <!-- 刻度 -->
+        <div class="hour-marker"></div>
+        <div class="hour-marker"></div>
+        <div class="hour-marker"></div>
+        <div class="hour-marker"></div>
+        <div class="hour-marker"></div>
+        <div class="hour-marker"></div>
+        <div class="hour-marker"></div>
+        <div class="hour-marker"></div>
+        <div class="hour-marker"></div>
+        <div class="hour-marker"></div>
+        <div class="hour-marker"></div>
+        <div class="hour-marker"></div>
+
+        <!-- 数字 -->
+        <div class="number number-12">12</div>
+        <div class="number number-3">3</div>
+        <div class="number number-6">6</div>
+        <div class="number number-9">9</div>
+
+        <!-- 指针 -->
+        <div class="hand hour"></div>
+        <div class="hand minute"></div>
+        <div class="hand second"></div>
+
+        <!-- 数字时间显示 -->
+        <div class="digital-time"></div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            const milliseconds = now.getMilliseconds();
+
+            // 计算指针角度
+            const secondDeg = (seconds + milliseconds / 1000) * 6;
+            const minuteDeg = (minutes + seconds / 60) * 6;
+            const hourDeg = (hours % 12 + minutes / 60) * 30;
+
+            // 更新指针位置
+            const secondHand = document.querySelector('.second');
+            const minuteHand = document.querySelector('.minute');
+            const hourHand = document.querySelector('.hour');
+
+            secondHand.style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
+            minuteHand.style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
+            hourHand.style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+
+            // 更新数字时间显示
+            const digitalTime = document.querySelector('.digital-time');
+            const timeString = 
+                String(hours).padStart(2, '0') + ':' +
+                String(minutes).padStart(2, '0') + ':' +
+                String(seconds).padStart(2, '0');
+            digitalTime.textContent = timeString;
+        }
+
+        // 初始化时钟
+        updateClock();
+
+        // 每秒更新一次
+        setInterval(updateClock, 100);
+    </script>
+</body>
+</html>
