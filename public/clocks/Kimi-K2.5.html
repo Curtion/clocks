@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模拟时钟</title>
+    <style>
+        /* 页面居中样式 */
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f2f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        /* 时钟表盘 */
+        .clock {
+            width: 300px;
+            height: 300px;
+            background-color: #fff;
+            border: 10px solid #333;
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        /* 中心圆点 */
+        .clock::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background-color: #333;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        /* 指针通用样式 */
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            border-radius: 4px;
+            transition: transform 0.05s cubic-bezier(0.4, 2.08, 0.55, 0.44);
+        }
+
+        /* 时针 */
+        .hour-hand {
+            width: 8px;
+            height: 60px;
+            background-color: #333;
+            margin-left: -4px;
+            z-index: 3;
+        }
+
+        /* 分针 */
+        .min-hand {
+            width: 6px;
+            height: 90px;
+            background-color: #666;
+            margin-left: -3px;
+            z-index: 4;
+        }
+
+        /* 秒针 */
+        .second-hand {
+            width: 2px;
+            height: 110px;
+            background-color: #ff4d4f;
+            margin-left: -1px;
+            z-index: 5;
+        }
+
+        /* 刻度线 */
+        .marking {
+            position: absolute;
+            width: 2px;
+            height: 10px;
+            background-color: #bbb;
+            left: 50%;
+            margin-left: -1px;
+            transform-origin: 0 150px;
+        }
+
+        .marking-main {
+            height: 15px;
+            width: 4px;
+            margin-left: -2px;
+            background-color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="clock" id="clock">
+    <!-- 动态生成的刻度将放在这里 -->
+    <div class="hand hour-hand" id="hour"></div>
+    <div class="hand min-hand" id="min"></div>
+    <div class="hand second-hand" id="second"></div>
+</div>
+
+<script>
+    // 生成刻度
+    const clock = document.getElementById('clock');
+    for (let i = 0; i < 12; i++) {
+        const mark = document.createElement('div');
+        mark.className = 'marking' + (i % 3 === 0 ? ' marking-main' : '');
+        mark.style.transform = `rotate(${i * 30}deg)`;
+        clock.appendChild(mark);
+    }
+
+    const hourHand = document.getElementById('hour');
+    const minHand = document.getElementById('min');
+    const secondHand = document.getElementById('second');
+
+    function updateClock() {
+        const now = new Date();
+
+        const seconds = now.getSeconds();
+        const secondDeg = (seconds / 60) * 360;
+        secondHand.style.transform = `rotate(${secondDeg}deg)`;
+
+        const minutes = now.getMinutes();
+        const minDeg = (minutes / 60) * 360 + (seconds / 60) * 6;
+        minHand.style.transform = `rotate(${minDeg}deg)`;
+
+        const hours = now.getHours();
+        const hourDeg = ((hours % 12) / 12) * 360 + (minutes / 60) * 30;
+        hourHand.style.transform = `rotate(${hourDeg}deg)`;
+    }
+
+    // 每一秒更新一次
+    setInterval(updateClock, 1000);
+
+    // 立即执行一次防止白屏
+    updateClock();
+</script>
+
+</body>
+</html>
