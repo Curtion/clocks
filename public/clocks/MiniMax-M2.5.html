@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模拟时钟</title>
+    <style>
+        /* 全局样式：设置背景和居中布局 */
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #2c3e50;
+            font-family: Arial, sans-serif;
+        }
+
+        /* 时钟容器样式 */
+        .clock {
+            width: 300px;
+            height: 300px;
+            background-color: #ecf0f1;
+            border-radius: 50%;
+            border: 15px solid #34495e;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 数字刻度样式 (使用JS生成) */
+        .number {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            left: 50%; /* 初始居中 */
+            top: 50%;  /* 初始居中 */
+            transform-origin: center;
+        }
+
+        /* 中心圆点 */
+        .center-dot {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        /* 通用指针样式 */
+        .hand {
+            position: absolute;
+            bottom: 50%; /* 将指针底部对齐到时钟中心 */
+            left: 50%;
+            transform-origin: bottom center; /* 设置旋转中心为底部 */
+            transform: translateX(-50%) rotate(0deg);
+            border-radius: 4px 4px 0 0;
+            z-index: 5;
+        }
+
+        /* 时针 */
+        .hour {
+            width: 8px;
+            height: 70px;
+            background-color: #2c3e50;
+        }
+
+        /* 分针 */
+        .minute {
+            width: 6px;
+            height: 100px;
+            background-color: #7f8c8d;
+        }
+
+        /* 秒针 */
+        .second {
+            width: 2px;
+            height: 110px;
+            background-color: #e74c3c;
+            z-index: 6;
+        }
+
+        /* 指针头部圆帽 (可选装饰) */
+        .hand::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 10px;
+            background-color: inherit;
+            top: -10px;
+            left: 0;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="clock">
+        <!-- 数字刻度将由 JS 生成 -->
+        <div class="center-dot"></div>
+        <div class="hand hour" id="hourHand"></div>
+        <div class="hand minute" id="minuteHand"></div>
+        <div class="hand second" id="secondHand"></div>
+    </div>
+
+    <script>
+        // 1. 生成时钟刻度数字 (1-12)
+        const clock = document.querySelector('.clock');
+        for (let i = 1; i <= 12; i++) {
+            const number = document.createElement('div');
+            number.className = 'number';
+            number.innerText = i;
+            
+            // 计算每个数字的位置
+            // 270deg 是为了让 12 旋转到最上方
+            const angle = (i * 30) * (Math.PI / 180); 
+            // 半径约为 115px (clock radius 150 - padding)
+            const radius = 115; 
+            
+            // 使用三角函数计算位置，使其落在圆周上
+            // 注意：这里我们不使用 transform: rotate，因为那样会旋转文字
+            // 我们使用 calc 结合 CSS 变量或者直接定位
+            // 简便方法：利用 transform: translate
+            const x = Math.sin(angle) * radius;
+            const y = -Math.cos(angle) * radius;
+            
+            number.style.transform = `translate(${x}px, ${y}px)`;
+            clock.appendChild(number);
+        }
+
+        // 2. 实时更新时间函数
+        function updateClock() {
+            const now = new Date();
+            
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+
+            // 计算秒针角度 (每秒 6 度)
+            const secondDeg = seconds * 6;
+            
+            // 计算分针角度 (每分钟 6 度 + 每秒带来的微小移动)
+            const minuteDeg = minutes * 6 + seconds * 0.1;
+            
+            // 计算时针角度 (每小时 30 度 + 每分钟带来的移动)
+            // (hours % 12) 转换为 12 小时制
+            const hourDeg = (hours % 12) * 30 + minutes * 0.5;
+
+            // 应用旋转样式
+            document.getElementById('secondHand').style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
+            document.getElementById('minuteHand').style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
+            document.getElementById('hourHand').style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+        }
+
+        // 3. 初始化并每秒更新一次
+        setInterval(updateClock, 1000);
+        updateClock(); // 立即执行一次以避免初始延迟
+    </script>
+</body>
+</html>
