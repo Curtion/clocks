@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模拟时钟</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            font-family: sans-serif;
+        }
+
+        .clock {
+            width: 300px;
+            height: 300px;
+            border: 15px solid #333;
+            border-radius: 50%;
+            position: relative;
+            background-color: #fff;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        /* 时钟中心点 */
+        .clock::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: #333;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        /* 指针通用样式 */
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center; /* 旋转基点设在底部中心 */
+            transform: translateX(-50%) rotate(0deg); /* 初始位置居中 */
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            z-index: 5;
+        }
+
+        /* 时针 */
+        .hour {
+            width: 8px;
+            height: 70px;
+            background-color: #333;
+        }
+
+        /* 分针 */
+        .minute {
+            width: 6px;
+            height: 100px;
+            background-color: #666;
+        }
+
+        /* 秒针 */
+        .second {
+            width: 2px;
+            height: 120px;
+            background-color: #e74c3c;
+            z-index: 6;
+        }
+
+        /* 简单的刻度数字 */
+        .number {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            padding-top: 10px;
+        }
+
+        .number12 { transform: rotate(0deg); }
+        .number3  { transform: rotate(90deg); }
+        .number6  { transform: rotate(180deg); }
+        .number9  { transform: rotate(270deg); }
+        
+        /* 修正数字方向，使其直立 */
+        .number span {
+            display: inline-block;
+        }
+        .number12 span { transform: rotate(0deg); }
+        .number3 span  { transform: rotate(-90deg); }
+        .number6 span  { transform: rotate(-180deg); }
+        .number9 span  { transform: rotate(-270deg); }
+
+    </style>
+</head>
+<body>
+
+    <div class="clock">
+        <!-- 刻度数字 -->
+        <div class="number number12"><span>12</span></div>
+        <div class="number number3"><span>3</span></div>
+        <div class="number number6"><span>6</span></div>
+        <div class="number number9"><span>9</span></div>
+
+        <!-- 指针 -->
+        <div class="hand hour" id="hour-hand"></div>
+        <div class="hand minute" id="minute-hand"></div>
+        <div class="hand second" id="second-hand"></div>
+    </div>
+
+    <script>
+        const hourHand = document.getElementById('hour-hand');
+        const minuteHand = document.getElementById('minute-hand');
+        const secondHand = document.getElementById('second-hand');
+
+        function updateClock() {
+            const now = new Date();
+
+            // 获取当前时间单位
+            const seconds = now.getSeconds();
+            const minutes = now.getMinutes();
+            const hours = now.getHours();
+
+            // 计算角度
+            // 秒针：一圈 360 度 / 60 秒 = 6 度/秒
+            const secondsDegrees = ((seconds / 60) * 360);
+            
+            // 分针：一圈 360 度 / 60 分 = 6 度/分 + 秒针带来的微小偏移
+            const minutesDegrees = ((minutes / 60) * 360) + ((seconds / 60) * 6);
+            
+            // 时针：一圈 360 度 / 12 小时 = 30 度/小时 + 分针带来的偏移
+            const hoursDegrees = ((hours / 12) * 360) + ((minutes / 60) * 30);
+
+            // 应用旋转样式
+            // 注意：translateX(-50%) 是为了保持指针水平居中，因为 left 设为了 50%
+            secondHand.style.transform = `translateX(-50%) rotate(${secondsDegrees}deg)`;
+            minuteHand.style.transform = `translateX(-50%) rotate(${minutesDegrees}deg)`;
+            hourHand.style.transform = `translateX(-50%) rotate(${hoursDegrees}deg)`;
+        }
+
+        // 立即执行一次，避免页面加载时的延迟
+        updateClock();
+
+        // 每秒更新一次
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>
