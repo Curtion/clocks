@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模拟时钟</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #1a1a2e;
+    font-family: 'Segoe UI', sans-serif;
+    overflow: hidden;
+  }
+
+  .clock-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+  }
+
+  .clock {
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #2a2a4a, #1a1a2e);
+    border: 4px solid #4a4a8a;
+    box-shadow:
+      0 0 40px rgba(100, 100, 200, 0.15),
+      inset 0 0 60px rgba(0, 0, 0, 0.5);
+    position: relative;
+  }
+
+  .clock::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 14px;
+    height: 14px;
+    background: radial-gradient(circle, #ff6b6b, #ee5a5a);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+    box-shadow: 0 0 8px rgba(255, 100, 100, 0.5);
+  }
+
+  /* 数字 */
+  .number {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    color: #c0c0e0;
+    line-height: 1;
+  }
+
+  .number span {
+    display: inline-block;
+    margin-top: 18px;
+  }
+
+  /* 刻度线 */
+  .tick {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 2px;
+    height: 100%;
+    transform-origin: center center;
+  }
+
+  .tick::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 12px;
+    background: #6a6a9a;
+    border-radius: 1px;
+  }
+
+  .tick.major::before {
+    width: 3px;
+    height: 18px;
+    background: #9090c0;
+  }
+
+  /* 指针公共样式 */
+  .hand {
+    position: absolute;
+    bottom: 50%;
+    left: 50%;
+    transform-origin: bottom center;
+    border-radius: 4px;
+    z-index: 10;
+  }
+
+  /* 时针 */
+  .hour-hand {
+    width: 6px;
+    height: 90px;
+    background: linear-gradient(to top, #e0e0ff, #8888cc);
+    margin-left: -3px;
+    border-radius: 3px;
+    box-shadow: 0 0 6px rgba(130, 130, 200, 0.4);
+  }
+
+  /* 分针 */
+  .minute-hand {
+    width: 4px;
+    height: 120px;
+    background: linear-gradient(to top, #d0d0f0, #7777bb);
+    margin-left: -2px;
+    border-radius: 2px;
+    box-shadow: 0 0 6px rgba(120, 120, 190, 0.4);
+  }
+
+  /* 秒针 */
+  .second-hand {
+    width: 2px;
+    height: 135px;
+    background: linear-gradient(to top, #ff6b6b, #ff4444);
+    margin-left: -1px;
+    border-radius: 1px;
+    box-shadow: 0 0 8px rgba(255, 80, 80, 0.5);
+    z-index: 15;
+  }
+
+  .second-hand::after {
+    content: '';
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 25px;
+    background: #ff6b6b;
+    border-radius: 1px;
+  }
+
+  /* 品牌文字 */
+  .brand {
+    color: #6a6a9a;
+    font-size: 14px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    font-weight: 300;
+  }
+
+  /* 数字时间显示 */
+  .digital-time {
+    color: #8888bb;
+    font-size: 20px;
+    letter-spacing: 3px;
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+</head>
+<body>
+  <div class="clock-wrapper">
+    <div class="clock" id="clock">
+      <!-- 数字 -->
+      <div class="number" style="transform: rotate(30deg)"><span style="transform: rotate(-30deg); display: inline-block;">1</span></div>
+      <div class="number" style="transform: rotate(60deg)"><span style="transform: rotate(-60deg); display: inline-block;">2</span></div>
+      <div class="number" style="transform: rotate(90deg)"><span style="transform: rotate(-90deg); display: inline-block;">3</span></div>
+      <div class="number" style="transform: rotate(120deg)"><span style="transform: rotate(-120deg); display: inline-block;">4</span></div>
+      <div class="number" style="transform: rotate(150deg)"><span style="transform: rotate(-150deg); display: inline-block;">5</span></div>
+      <div class="number" style="transform: rotate(180deg)"><span style="transform: rotate(-180deg); display: inline-block;">6</span></div>
+      <div class="number" style="transform: rotate(210deg)"><span style="transform: rotate(-210deg); display: inline-block;">7</span></div>
+      <div class="number" style="transform: rotate(240deg)"><span style="transform: rotate(-240deg); display: inline-block;">8</span></div>
+      <div class="number" style="transform: rotate(270deg)"><span style="transform: rotate(-270deg); display: inline-block;">9</span></div>
+      <div class="number" style="transform: rotate(300deg)"><span style="transform: rotate(-300deg); display: inline-block;">10</span></div>
+      <div class="number" style="transform: rotate(330deg)"><span style="transform: rotate(-330deg); display: inline-block;">11</span></div>
+      <div class="number" style="transform: rotate(360deg)"><span style="transform: rotate(-360deg); display: inline-block;">12</span></div>
+
+      <!-- 刻度 -->
+      <div id="ticks"></div>
+
+      <!-- 指针 -->
+      <div class="hand hour-hand" id="hourHand"></div>
+      <div class="hand minute-hand" id="minuteHand"></div>
+      <div class="hand second-hand" id="secondHand"></div>
+    </div>
+
+    <div class="brand">M I M O</div>
+    <div class="digital-time" id="digitalTime">00:00:00</div>
+  </div>
+
+<script>
+(function() {
+  // 生成 60 个刻度
+  const ticksContainer = document.getElementById('ticks');
+  for (let i = 0; i < 60; i++) {
+    const tick = document.createElement('div');
+    tick.className = 'tick' + (i % 5 === 0 ? ' major' : '');
+    tick.style.transform = 'rotate(' + (i * 6) + 'deg)';
+    ticksContainer.appendChild(tick);
+  }
+
+  const hourHand = document.getElementById('hourHand');
+  const minuteHand = document.getElementById('minuteHand');
+  const secondHand = document.getElementById('secondHand');
+  const digitalTime = document.getElementById('digitalTime');
+
+  function updateClock() {
+    const now = new Date();
+    const hours = now.getHours() % 12;
+    const minutes = now.getMinutes();
+    const seconds = now.getSeconds();
+    const milliseconds = now.getMilliseconds();
+
+    // 平滑过渡：秒针考虑毫秒
+    const secDegrees = (seconds + milliseconds / 1000) * 6;
+    const minDegrees = (minutes + seconds / 60) * 6;
+    const hourDegrees = (hours + minutes / 60) * 30;
+
+    secondHand.style.transform = 'rotate(' + secDegrees + 'deg)';
+    minuteHand.style.transform = 'rotate(' + minDegrees + 'deg)';
+    hourHand.style.transform = 'rotate(' + hourDegrees + 'deg)';
+
+    // 数字时间
+    const pad = function(n) { return n < 10 ? '0' + n : '' + n; };
+    digitalTime.textContent =
+      pad(now.getHours()) + ':' + pad(minutes) + ':' + pad(seconds);
+
+    requestAnimationFrame(updateClock);
+  }
+
+  updateClock();
+})();
+</script>
+</body>
+</html>

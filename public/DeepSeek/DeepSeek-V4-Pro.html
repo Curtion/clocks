@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模拟时钟</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #1a1a2e;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+
+  .clock-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .digital-time {
+    color: #e0e0e0;
+    font-size: 22px;
+    letter-spacing: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  canvas {
+    border-radius: 50%;
+    box-shadow:
+      0 0 60px rgba(100, 140, 255, 0.15),
+      0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+</style>
+</head>
+<body>
+
+<div class="clock-wrapper">
+  <canvas id="clock" width="360" height="360"></canvas>
+  <div class="digital-time" id="digital"></div>
+</div>
+
+<script>
+(function () {
+  const canvas = document.getElementById('clock');
+  const ctx = canvas.getContext('2d');
+  const digitalEl = document.getElementById('digital');
+
+  const W = canvas.width;
+  const H = canvas.height;
+  const cx = W / 2;
+  const cy = H / 2;
+  const R = (Math.min(W, H) / 2) * 0.88;
+
+  // ── Tick marks ──────────────────────────────────────
+  const ticks = [];
+  for (let i = 0; i < 60; i++) {
+    const angle = (i / 60) * Math.PI * 2 - Math.PI / 2;
+    const isHour = i % 5 === 0;
+    ticks.push({
+      angle,
+      inner: isHour ? R * 0.78 : R * 0.84,
+      outer: R * 0.92,
+      width: isHour ? 2.8 : 1.2,
+      label: isHour ? (((i / 5) + 11) % 12) + 1 : null
+    });
+  }
+
+  // ── Draw ────────────────────────────────────────────
+  function drawFace() {
+    // Outer ring
+    const grad = ctx.createRadialGradient(cx, cy, R * 0.88, cx, cy, R * 1.04);
+    grad.addColorStop(0, '#1e1e36');
+    grad.addColorStop(0.7, '#252540');
+    grad.addColorStop(1, '#1a1a30');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * 1.04, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Inner face
+    ctx.fillStyle = '#f5f3ef';
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Thin border
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Ticks
+    ticks.forEach(t => {
+      const x1 = cx + Math.cos(t.angle) * t.inner;
+      const y1 = cy + Math.sin(t.angle) * t.inner;
+      const x2 = cx + Math.cos(t.angle) * t.outer;
+      const y2 = cy + Math.sin(t.angle) * t.outer;
+
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = t.width;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    });
+
+    // Numbers
+    ctx.fillStyle = '#222';
+    ctx.font = 'bold 20px "Segoe UI", system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ticks.forEach(t => {
+      if (t.label !== null) {
+        const lx = cx + Math.cos(t.angle) * R * 0.66;
+        const ly = cy + Math.sin(t.angle) * R * 0.66;
+        ctx.fillText(String(t.label), lx, ly);
+      }
+    });
+
+    // Center dot
+    ctx.fillStyle = '#1a1a2e';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawHand(angle, length, width, color, shadow) {
+    const x = cx + Math.cos(angle) * length;
+    const y = cy + Math.sin(angle) * length;
+
+    ctx.save();
+    ctx.shadowColor = shadow || 'rgba(0,0,0,0.25)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function render() {
+    // ── Clear ──
+    ctx.clearRect(0, 0, W, H);
+    drawFace();
+
+    // ── Accurate time ──
+    const now = new Date();
+    const ms = now.getMilliseconds();
+    const s  = now.getSeconds() + ms / 1000;
+    const m  = now.getMinutes() + s / 60;
+    const h  = (now.getHours() % 12) + m / 60;
+
+    // Angles: 0 rad = 12 o'clock
+    const secAngle = (s / 60) * Math.PI * 2 - Math.PI / 2;
+    const minAngle = (m / 60) * Math.PI * 2 - Math.PI / 2;
+    const hrAngle  = (h / 12) * Math.PI * 2 - Math.PI / 2;
+
+    // Draw hands (back to front)
+    drawHand(hrAngle,  R * 0.48, 5.5, '#2c2c2c', 'rgba(0,0,0,0.3)');
+    drawHand(minAngle, R * 0.68, 3.5, '#3a3a3a', 'rgba(0,0,0,0.25)');
+    drawHand(secAngle, R * 0.78, 1.6, '#c0392b', 'rgba(0,0,0,0.15)');
+
+    // Second-hand center overlay
+    ctx.fillStyle = '#c0392b';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // ── Digital readout ──
+    digitalEl.textContent =
+      pad(now.getHours()) + ':' +
+      pad(now.getMinutes()) + ':' +
+      pad(now.getSeconds());
+  }
+
+  // ── Run at ~60 fps for smooth second hand ──
+  render();
+  setInterval(render, 1000 / 60);
+})();
+</script>
+
+</body>
+</html>
