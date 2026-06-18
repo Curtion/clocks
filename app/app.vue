@@ -1,5 +1,16 @@
 <script setup>
-const { data: clockFiles } = await useFetch('/api/clocks')
+const { data } = await useFetch('/api/clocks')
+
+const categories = computed(() => data.value?.categories ?? ['All'])
+const clocks = computed(() => data.value?.clocks ?? [])
+
+const selected = ref('All')
+
+const filteredClocks = computed(() =>
+  selected.value === 'All'
+    ? clocks.value
+    : clocks.value.filter(c => c.category === selected.value),
+)
 </script>
 
 <template>
@@ -11,25 +22,71 @@ const { data: clockFiles } = await useFetch('/api/clocks')
         <li>源码: <a href="https://github.com/Curtion/clocks" target="_blank">https://github.com/Curtion/clocks</a></li>
       </ul>
     </HelpHint>
+    <nav class="category-bar">
+      <button
+        v-for="cat in categories"
+        :key="cat"
+        class="category-button"
+        :class="{ active: cat === selected }"
+        @click="selected = cat"
+      >
+        {{ cat }}
+      </button>
+    </nav>
     <div class="clocks-container">
-      <div v-for="file in clockFiles" :key="file" class="clock-item">
+      <div v-for="file in filteredClocks" :key="file.path" class="clock-item">
         <h3 class="clock-title">
-          <a :href="`/clocks/${file}`" target="_blank">{{ file.replace('.html', '') }}</a>
+          <a :href="`/clocks/${file.path}`" target="_blank">{{ file.name }}</a>
         </h3>
-        <iframe :src="`/clocks/${file}`" class="clock-iframe" />
+        <iframe :src="`/clocks/${file.path}`" class="clock-iframe" />
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+  .category-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    gap: 8px;
+    padding: 12px 60px 12px 20px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    overflow-x: auto;
+    white-space: nowrap;
+    box-sizing: border-box;
+  }
+
+  .category-button {
+    flex: 0 0 auto;
+    padding: 6px 14px;
+    border: 1px solid #ddd;
+    border-radius: 16px;
+    background: #fff;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .category-button:hover {
+    background: #f3f3f3;
+  }
+
+  .category-button.active {
+    background: #333;
+    color: #fff;
+    border-color: #333;
+  }
+
   .clocks-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 600px), 1fr));
     gap: 20px;
     padding: 20px;
     box-sizing: border-box;
-    margin-top: 36px;
   }
 
   .clock-item {
