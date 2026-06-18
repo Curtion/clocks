@@ -9,6 +9,7 @@ export default defineNuxtConfig({
     },
   },
   app: {
+    baseURL: '/clocks/',
     head: {
       title: 'AI时钟',
       htmlAttrs: {
