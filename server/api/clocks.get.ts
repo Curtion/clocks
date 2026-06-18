@@ -4,7 +4,7 @@ import process from 'node:process'
 
 export default defineEventHandler(async () => {
   try {
-    const publicDir = join(process.cwd(), 'public', 'clocks')
+    const publicDir = join(process.cwd(), 'public')
     const files = await readdir(publicDir)
 
     const htmlFiles = files.filter(file => file.endsWith('.html'))
