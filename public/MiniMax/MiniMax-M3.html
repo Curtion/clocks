@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>模拟时钟 - MiniMax</title>
+<title>模拟时钟</title>
 <style>
   * {
     margin: 0;
@@ -12,93 +12,51 @@
   }
 
   html, body {
-    width: 100%;
     height: 100%;
+    width: 100%;
     overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
   }
 
   body {
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 30% 30%, #2a3a5a 0%, #0d1525 70%, #050810 100%);
     min-height: 100vh;
-    background: radial-gradient(circle at 30% 20%, #1f2a44 0%, #0b0f1f 60%, #05070f 100%);
-    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-    color: #e8ecf3;
   }
 
-  .scene {
-    position: relative;
-    width: min(80vmin, 520px);
-    aspect-ratio: 1 / 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  /* 外圈光晕 */
-  .glow {
-    position: absolute;
-    inset: -6%;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(120, 160, 255, 0.18), transparent 65%);
-    filter: blur(20px);
-    z-index: 0;
-  }
-
-  /* 表盘 */
   .clock {
+    --size: min(80vmin, 520px);
     position: relative;
-    width: 100%;
-    height: 100%;
+    width: var(--size);
+    height: var(--size);
     border-radius: 50%;
     background:
-      radial-gradient(circle at 50% 35%, #f4f6fb 0%, #d9deeb 55%, #b8c0d4 100%);
+      radial-gradient(circle at 50% 50%, #fdfbf6 0%, #f3ede0 60%, #d8cdb4 100%);
     box-shadow:
-      0 30px 60px rgba(0, 0, 0, 0.55),
-      inset 0 0 0 6px #2a3147,
-      inset 0 0 0 8px #c9d2e6,
-      inset 0 20px 40px rgba(255, 255, 255, 0.6),
-      inset 0 -20px 40px rgba(0, 0, 0, 0.12);
-    z-index: 1;
+      0 0 0 8px #1a1f2e,
+      0 0 0 10px #3a4258,
+      0 20px 60px rgba(0, 0, 0, 0.6),
+      0 30px 90px rgba(0, 0, 0, 0.4),
+      inset 0 0 40px rgba(120, 90, 50, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  /* 刻度线 */
-  .ticks {
+  /* 品牌名 */
+  .brand {
     position: absolute;
-    inset: 0;
-  }
-
-  .tick {
-    position: absolute;
-    top: 50%;
+    top: 28%;
     left: 50%;
-    transform-origin: 0 0;
-  }
-
-  .tick::before {
-    content: "";
-    position: absolute;
-    left: -1.5px;
-    width: 3px;
-    border-radius: 2px;
-    background: #2a3147;
-  }
-
-  .tick.minor::before {
-    top: calc(-50% + 14px);
-    height: 6px;
-    background: #6a7290;
-    width: 2px;
-    left: -1px;
-  }
-
-  .tick.major::before {
-    top: calc(-50% + 10px);
-    height: 16px;
-    background: #1a1f30;
-    width: 5px;
-    left: -2.5px;
+    transform: translateX(-50%);
+    font-size: calc(var(--size) * 0.045);
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    color: #5a4a30;
+    text-transform: uppercase;
+    font-family: "Georgia", "Times New Roman", serif;
   }
 
   /* 数字 */
@@ -111,225 +69,250 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    font-size: clamp(14px, 4.2vmin, 26px);
+    font-size: calc(var(--size) * 0.085);
     font-weight: 700;
-    color: #1a1f30;
-    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);
-    transform-origin: 0 0;
-  }
-
-  .number span {
-    display: inline-block;
+    color: #2a2018;
+    font-family: "Georgia", "Times New Roman", serif;
     transform: translate(-50%, -50%);
   }
 
-  /* 品牌 / 装饰文字 */
-  .brand {
+  /* 刻度容器 */
+  .ticks {
     position: absolute;
-    top: 26%;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: clamp(10px, 2.4vmin, 14px);
-    letter-spacing: 3px;
-    color: #6a7290;
-    font-weight: 600;
+    inset: 0;
   }
 
-  .sub {
+  .tick {
     position: absolute;
-    bottom: 24%;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
-    font-size: clamp(8px, 1.8vmin, 11px);
-    letter-spacing: 2px;
-    color: #8a91a8;
+    width: 2px;
+    height: calc(var(--size) * 0.025);
+    background: #2a2018;
+    transform-origin: 50% calc(var(--size) * 0.45);
+    border-radius: 1px;
   }
 
-  /* 指针 */
+  .tick.major {
+    width: 4px;
+    height: calc(var(--size) * 0.04);
+    background: #1a1208;
+    transform-origin: 50% calc(var(--size) * 0.44);
+  }
+
+  /* 指针通用 */
   .hand {
     position: absolute;
     bottom: 50%;
     left: 50%;
     transform-origin: 50% 100%;
-    border-radius: 999px;
-    z-index: 3;
+    border-radius: 4px;
+    z-index: 10;
   }
 
-  .hand.hour {
-    width: 8px;
-    height: 28%;
-    margin-left: -4px;
-    background: linear-gradient(180deg, #1a1f30 0%, #3a4366 100%);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.35);
+  .hour-hand {
+    width: calc(var(--size) * 0.018);
+    height: calc(var(--size) * 0.25);
+    background: linear-gradient(to top, #1a1208 0%, #2a2018 100%);
+    margin-left: calc(var(--size) * -0.009);
+    z-index: 11;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
 
-  .hand.minute {
-    width: 6px;
-    height: 40%;
-    margin-left: -3px;
-    background: linear-gradient(180deg, #2a3147 0%, #4d5680 100%);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.35);
+  .minute-hand {
+    width: calc(var(--size) * 0.014);
+    height: calc(var(--size) * 0.38);
+    background: linear-gradient(to top, #2a2018 0%, #4a3a28 100%);
+    margin-left: calc(var(--size) * -0.007);
+    z-index: 12;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
 
-  .hand.second {
+  .second-hand {
     width: 2px;
-    height: 44%;
+    height: calc(var(--size) * 0.42);
+    background: #c0392b;
     margin-left: -1px;
-    background: #e63946;
-    box-shadow: 0 0 8px rgba(230, 57, 70, 0.6);
-    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 13;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   }
 
-  /* 指针尾部 */
-  .hand.second::after {
+  /* 秒针尾端配重 */
+  .second-hand::before {
     content: "";
     position: absolute;
-    bottom: -14px;
+    bottom: -20%;
     left: 50%;
     transform: translateX(-50%);
-    width: 10px;
-    height: 10px;
+    width: calc(var(--size) * 0.03);
+    height: calc(var(--size) * 0.06);
+    background: #c0392b;
     border-radius: 50%;
-    background: #e63946;
   }
 
-  /* 中心轴 */
-  .center-cap {
+  /* 中心点 */
+  .center {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 18px;
-    height: 18px;
+    width: calc(var(--size) * 0.04);
+    height: calc(var(--size) * 0.04);
+    background: radial-gradient(circle, #1a1208 30%, #0a0805 100%);
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #5a6486, #1a1f30 70%);
     transform: translate(-50%, -50%);
-    z-index: 5;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    z-index: 20;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   }
 
-  .center-cap::after {
+  .center::after {
     content: "";
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 6px;
-    height: 6px;
+    width: calc(var(--size) * 0.012);
+    height: calc(var(--size) * 0.012);
+    background: #c0392b;
     border-radius: 50%;
-    background: #e63946;
     transform: translate(-50%, -50%);
   }
 
-  /* 数字时间显示 */
+  /* 数字时钟显示 */
   .digital {
     position: absolute;
-    bottom: 14%;
+    bottom: 22%;
     left: 50%;
     transform: translateX(-50%);
-    font-variant-numeric: tabular-nums;
-    font-size: clamp(11px, 2.6vmin, 15px);
-    color: #2a3147;
-    letter-spacing: 2px;
-    font-weight: 600;
-    z-index: 4;
+    font-size: calc(var(--size) * 0.06);
+    font-weight: 700;
+    color: #2a2018;
+    font-family: "Consolas", "Monaco", "Courier New", monospace;
+    letter-spacing: 0.1em;
+    background: rgba(255, 255, 255, 0.4);
+    padding: 2px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
   }
 
-  /* 玻璃反光 */
-  .reflection {
+  /* 日期显示 */
+  .date {
     position: absolute;
-    inset: 4%;
-    border-radius: 50%;
-    background: linear-gradient(160deg, rgba(255, 255, 255, 0.35) 0%, transparent 35%);
-    pointer-events: none;
-    z-index: 6;
+    top: 68%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: calc(var(--size) * 0.035);
+    color: #4a3a28;
+    font-family: "Georgia", "Times New Roman", serif;
+    letter-spacing: 0.1em;
   }
 
-  @media (max-width: 480px) {
-    .scene { width: 86vmin; }
+  /* 星期 */
+  .day {
+    position: absolute;
+    top: 75%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: calc(var(--size) * 0.03);
+    color: #5a4a30;
+    font-family: "Georgia", "Times New Roman", serif;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
   }
 </style>
 </head>
 <body>
-  <div class="scene">
-    <div class="glow"></div>
-    <div class="clock">
-      <div class="ticks" id="ticks"></div>
-      <div class="numbers" id="numbers"></div>
-      <div class="brand">MINIMAX</div>
-      <div class="digital" id="digital">00:00:00</div>
-      <div class="sub">QUARTZ</div>
-
-      <div class="hand hour"  id="hourHand"></div>
-      <div class="hand minute" id="minuteHand"></div>
-      <div class="hand second" id="secondHand"></div>
-
-      <div class="center-cap"></div>
-      <div class="reflection"></div>
-    </div>
+  <div class="clock" id="clock">
+    <div class="brand">MiniMaxim</div>
+    <div class="numbers" id="numbers"></div>
+    <div class="ticks" id="ticks"></div>
+    <div class="hand hour-hand" id="hourHand"></div>
+    <div class="hand minute-hand" id="minuteHand"></div>
+    <div class="hand second-hand" id="secondHand"></div>
+    <div class="center"></div>
+    <div class="digital" id="digital">00:00:00</div>
+    <div class="date" id="date">2026-01-01</div>
+    <div class="day" id="day">星期一</div>
   </div>
 
 <script>
-  (function () {
-    const ticksEl = document.getElementById('ticks');
-    const numbersEl = document.getElementById('numbers');
-    const hourHand = document.getElementById('hourHand');
-    const minuteHand = document.getElementById('minuteHand');
-    const secondHand = document.getElementById('secondHand');
-    const digitalEl = document.getElementById('digital');
+(function () {
+  const clock = document.getElementById('clock');
+  const numbersEl = document.getElementById('numbers');
+  const ticksEl = document.getElementById('ticks');
+  const hourHand = document.getElementById('hourHand');
+  const minuteHand = document.getElementById('minuteHand');
+  const secondHand = document.getElementById('secondHand');
+  const digitalEl = document.getElementById('digital');
+  const dateEl = document.getElementById('date');
+  const dayEl = document.getElementById('day');
 
-    const RADIUS_PERCENT = 46; // 刻度距离中心的百分比（相对表盘尺寸）
+  const dayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
 
-    // 生成 60 个刻度
-    for (let i = 0; i < 60; i++) {
-      const tick = document.createElement('div');
-      tick.className = 'tick ' + (i % 5 === 0 ? 'major' : 'minor');
-      const angle = i * 6; // 每刻度 6 度
-      tick.style.transform = `translate(-50%, -50%) rotate(${angle}deg) translateY(-${RADIUS_PERCENT}%)`;
-      ticksEl.appendChild(tick);
-    }
+  // 生成 12 个数字
+  for (let i = 1; i <= 12; i++) {
+    const num = document.createElement('div');
+    num.className = 'number';
+    const angle = (i * 30) * Math.PI / 180;
+    const radius = 40; // 百分比
+    const x = 50 + radius * Math.sin(angle);
+    const y = 50 - radius * Math.cos(angle);
+    num.style.left = x + '%';
+    num.style.top = y + '%';
+    num.textContent = i;
+    numbersEl.appendChild(num);
+  }
 
-    // 生成 12 个数字
-    for (let n = 1; n <= 12; n++) {
-      const num = document.createElement('div');
-      num.className = 'number';
-      const angle = n * 30; // 每小时 30 度
-      // 数字放在表盘内部 36% 处
-      num.style.transform = `translate(-50%, -50%) rotate(${angle}deg) translateY(-36%) rotate(-${angle}deg)`;
-      const span = document.createElement('span');
-      span.textContent = n;
-      num.appendChild(span);
-      numbersEl.appendChild(num);
-    }
+  // 生成 60 个刻度
+  for (let i = 0; i < 60; i++) {
+    const tick = document.createElement('div');
+    tick.className = 'tick' + (i % 5 === 0 ? ' major' : '');
+    tick.style.transform = 'translate(-50%, -50%) rotate(' + (i * 6) + 'deg)';
+    ticksEl.appendChild(tick);
+  }
 
-    function pad(n) {
-      return n < 10 ? '0' + n : '' + n;
-    }
+  function pad(n) {
+    return n < 10 ? '0' + n : '' + n;
+  }
 
-    function update() {
-      const now = new Date();
-      const h = now.getHours();
-      const m = now.getMinutes();
-      const s = now.getSeconds();
-      const ms = now.getMilliseconds();
+  function update() {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const seconds = now.getSeconds();
+    const milliseconds = now.getMilliseconds();
 
-      const secondDeg = (s + ms / 1000) * 6;            // 0~360
-      const minuteDeg = (m + s / 60) * 6;               // 0~360
-      const hourDeg   = ((h % 12) + m / 60 + s / 3600) * 30; // 0~360
+    // 时针：每小时 30 度，加上分针的偏移
+    const hourDeg = (hours % 12) * 30 + minutes * 0.5;
+    // 分针：每分钟 6 度
+    const minuteDeg = minutes * 6 + seconds * 0.1;
+    // 秒针：包含毫秒的平滑过渡
+    const secondDeg = seconds * 6 + milliseconds * 0.006;
 
-      secondHand.style.transform = `rotate(${secondDeg}deg)`;
-      minuteHand.style.transform = `rotate(${minuteDeg}deg)`;
-      hourHand.style.transform   = `rotate(${hourDeg}deg)`;
+    hourHand.style.transform = 'rotate(' + hourDeg + 'deg)';
+    minuteHand.style.transform = 'rotate(' + minuteDeg + 'deg)';
+    secondHand.style.transform = 'rotate(' + secondDeg + 'deg)';
 
-      digitalEl.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
-    }
+    // 数字时钟
+    digitalEl.textContent = pad(hours) + ':' + pad(minutes) + ':' + pad(seconds);
 
+    // 日期
+    const y = now.getFullYear();
+    const m = pad(now.getMonth() + 1);
+    const d = pad(now.getDate());
+    dateEl.textContent = y + '-' + m + '-' + d;
+
+    // 星期
+    dayEl.textContent = dayNames[now.getDay()];
+  }
+
+  // 使用 requestAnimationFrame 实现平滑秒针
+  function tick() {
     update();
-    // 使用 requestAnimationFrame 实现秒针平滑扫描
-    function tick() {
-      update();
-      requestAnimationFrame(tick);
-    }
     requestAnimationFrame(tick);
-  })();
+  }
+
+  update();
+  requestAnimationFrame(tick);
+})();
 </script>
 </body>
 </html>
