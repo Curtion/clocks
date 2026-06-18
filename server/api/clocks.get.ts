@@ -10,6 +10,7 @@ const CATEGORIES = [
   'GLM',
   'Qwen',
   'MiniMax',
+  'MiMo',
   'Gemini',
   'Kimi',
   'Other',
