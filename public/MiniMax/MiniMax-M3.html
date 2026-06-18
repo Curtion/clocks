@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模拟时钟 - MiniMax</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: radial-gradient(circle at 30% 20%, #1f2a44 0%, #0b0f1f 60%, #05070f 100%);
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: #e8ecf3;
+  }
+
+  .scene {
+    position: relative;
+    width: min(80vmin, 520px);
+    aspect-ratio: 1 / 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* 外圈光晕 */
+  .glow {
+    position: absolute;
+    inset: -6%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(120, 160, 255, 0.18), transparent 65%);
+    filter: blur(20px);
+    z-index: 0;
+  }
+
+  /* 表盘 */
+  .clock {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 50% 35%, #f4f6fb 0%, #d9deeb 55%, #b8c0d4 100%);
+    box-shadow:
+      0 30px 60px rgba(0, 0, 0, 0.55),
+      inset 0 0 0 6px #2a3147,
+      inset 0 0 0 8px #c9d2e6,
+      inset 0 20px 40px rgba(255, 255, 255, 0.6),
+      inset 0 -20px 40px rgba(0, 0, 0, 0.12);
+    z-index: 1;
+  }
+
+  /* 刻度线 */
+  .ticks {
+    position: absolute;
+    inset: 0;
+  }
+
+  .tick {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: 0 0;
+  }
+
+  .tick::before {
+    content: "";
+    position: absolute;
+    left: -1.5px;
+    width: 3px;
+    border-radius: 2px;
+    background: #2a3147;
+  }
+
+  .tick.minor::before {
+    top: calc(-50% + 14px);
+    height: 6px;
+    background: #6a7290;
+    width: 2px;
+    left: -1px;
+  }
+
+  .tick.major::before {
+    top: calc(-50% + 10px);
+    height: 16px;
+    background: #1a1f30;
+    width: 5px;
+    left: -2.5px;
+  }
+
+  /* 数字 */
+  .numbers {
+    position: absolute;
+    inset: 0;
+  }
+
+  .number {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    font-size: clamp(14px, 4.2vmin, 26px);
+    font-weight: 700;
+    color: #1a1f30;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);
+    transform-origin: 0 0;
+  }
+
+  .number span {
+    display: inline-block;
+    transform: translate(-50%, -50%);
+  }
+
+  /* 品牌 / 装饰文字 */
+  .brand {
+    position: absolute;
+    top: 26%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: clamp(10px, 2.4vmin, 14px);
+    letter-spacing: 3px;
+    color: #6a7290;
+    font-weight: 600;
+  }
+
+  .sub {
+    position: absolute;
+    bottom: 24%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: clamp(8px, 1.8vmin, 11px);
+    letter-spacing: 2px;
+    color: #8a91a8;
+  }
+
+  /* 指针 */
+  .hand {
+    position: absolute;
+    bottom: 50%;
+    left: 50%;
+    transform-origin: 50% 100%;
+    border-radius: 999px;
+    z-index: 3;
+  }
+
+  .hand.hour {
+    width: 8px;
+    height: 28%;
+    margin-left: -4px;
+    background: linear-gradient(180deg, #1a1f30 0%, #3a4366 100%);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.35);
+  }
+
+  .hand.minute {
+    width: 6px;
+    height: 40%;
+    margin-left: -3px;
+    background: linear-gradient(180deg, #2a3147 0%, #4d5680 100%);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.35);
+  }
+
+  .hand.second {
+    width: 2px;
+    height: 44%;
+    margin-left: -1px;
+    background: #e63946;
+    box-shadow: 0 0 8px rgba(230, 57, 70, 0.6);
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* 指针尾部 */
+  .hand.second::after {
+    content: "";
+    position: absolute;
+    bottom: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #e63946;
+  }
+
+  /* 中心轴 */
+  .center-cap {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #5a6486, #1a1f30 70%);
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+
+  .center-cap::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #e63946;
+    transform: translate(-50%, -50%);
+  }
+
+  /* 数字时间显示 */
+  .digital {
+    position: absolute;
+    bottom: 14%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-variant-numeric: tabular-nums;
+    font-size: clamp(11px, 2.6vmin, 15px);
+    color: #2a3147;
+    letter-spacing: 2px;
+    font-weight: 600;
+    z-index: 4;
+  }
+
+  /* 玻璃反光 */
+  .reflection {
+    position: absolute;
+    inset: 4%;
+    border-radius: 50%;
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.35) 0%, transparent 35%);
+    pointer-events: none;
+    z-index: 6;
+  }
+
+  @media (max-width: 480px) {
+    .scene { width: 86vmin; }
+  }
+</style>
+</head>
+<body>
+  <div class="scene">
+    <div class="glow"></div>
+    <div class="clock">
+      <div class="ticks" id="ticks"></div>
+      <div class="numbers" id="numbers"></div>
+      <div class="brand">MINIMAX</div>
+      <div class="digital" id="digital">00:00:00</div>
+      <div class="sub">QUARTZ</div>
+
+      <div class="hand hour"  id="hourHand"></div>
+      <div class="hand minute" id="minuteHand"></div>
+      <div class="hand second" id="secondHand"></div>
+
+      <div class="center-cap"></div>
+      <div class="reflection"></div>
+    </div>
+  </div>
+
+<script>
+  (function () {
+    const ticksEl = document.getElementById('ticks');
+    const numbersEl = document.getElementById('numbers');
+    const hourHand = document.getElementById('hourHand');
+    const minuteHand = document.getElementById('minuteHand');
+    const secondHand = document.getElementById('secondHand');
+    const digitalEl = document.getElementById('digital');
+
+    const RADIUS_PERCENT = 46; // 刻度距离中心的百分比（相对表盘尺寸）
+
+    // 生成 60 个刻度
+    for (let i = 0; i < 60; i++) {
+      const tick = document.createElement('div');
+      tick.className = 'tick ' + (i % 5 === 0 ? 'major' : 'minor');
+      const angle = i * 6; // 每刻度 6 度
+      tick.style.transform = `translate(-50%, -50%) rotate(${angle}deg) translateY(-${RADIUS_PERCENT}%)`;
+      ticksEl.appendChild(tick);
+    }
+
+    // 生成 12 个数字
+    for (let n = 1; n <= 12; n++) {
+      const num = document.createElement('div');
+      num.className = 'number';
+      const angle = n * 30; // 每小时 30 度
+      // 数字放在表盘内部 36% 处
+      num.style.transform = `translate(-50%, -50%) rotate(${angle}deg) translateY(-36%) rotate(-${angle}deg)`;
+      const span = document.createElement('span');
+      span.textContent = n;
+      num.appendChild(span);
+      numbersEl.appendChild(num);
+    }
+
+    function pad(n) {
+      return n < 10 ? '0' + n : '' + n;
+    }
+
+    function update() {
+      const now = new Date();
+      const h = now.getHours();
+      const m = now.getMinutes();
+      const s = now.getSeconds();
+      const ms = now.getMilliseconds();
+
+      const secondDeg = (s + ms / 1000) * 6;            // 0~360
+      const minuteDeg = (m + s / 60) * 6;               // 0~360
+      const hourDeg   = ((h % 12) + m / 60 + s / 3600) * 30; // 0~360
+
+      secondHand.style.transform = `rotate(${secondDeg}deg)`;
+      minuteHand.style.transform = `rotate(${minuteDeg}deg)`;
+      hourHand.style.transform   = `rotate(${hourDeg}deg)`;
+
+      digitalEl.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+    }
+
+    update();
+    // 使用 requestAnimationFrame 实现秒针平滑扫描
+    function tick() {
+      update();
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  })();
+</script>
+</body>
+</html>
