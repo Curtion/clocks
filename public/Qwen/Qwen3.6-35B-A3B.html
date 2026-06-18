@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模拟时钟</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        .clock-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .clock {
+            position: relative;
+            width: 360px;
+            height: 360px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 40% 40%, #1a1a2e, #0a0a15);
+            box-shadow:
+                0 0 40px rgba(100, 100, 255, 0.15),
+                inset 0 0 30px rgba(0, 0, 0, 0.5),
+                0 8px 32px rgba(0, 0, 0, 0.6);
+            border: 4px solid rgba(100, 120, 255, 0.2);
+        }
+
+        .clock::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            background: radial-gradient(circle, #fff, #4a90d9);
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(74, 144, 217, 0.8);
+        }
+
+        /* 刻度 */
+        .tick {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: 0 0;
+        }
+
+        .tick.major {
+            width: 3px;
+            height: 20px;
+            background: linear-gradient(to bottom, #6478ff, #3a4a8a);
+            border-radius: 2px;
+        }
+
+        .tick.minor {
+            width: 1px;
+            height: 10px;
+            background: rgba(100, 120, 255, 0.3);
+            border-radius: 1px;
+        }
+
+        /* 数字 */
+        .number {
+            position: absolute;
+            font-size: 22px;
+            font-weight: 600;
+            color: #c0c8ff;
+            text-shadow: 0 0 10px rgba(100, 120, 255, 0.5);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 指针 */
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            border-radius: 4px;
+            z-index: 5;
+        }
+
+        .hour-hand {
+            width: 6px;
+            height: 90px;
+            margin-left: -3px;
+            background: linear-gradient(to top, #4a90d9, #8ab4ff);
+            border-radius: 4px;
+            box-shadow: 0 0 8px rgba(74, 144, 217, 0.6);
+        }
+
+        .minute-hand {
+            width: 4px;
+            height: 120px;
+            margin-left: -2px;
+            background: linear-gradient(to top, #6478ff, #a0b4ff);
+            border-radius: 4px;
+            box-shadow: 0 0 8px rgba(100, 120, 255, 0.6);
+        }
+
+        .second-hand {
+            width: 2px;
+            height: 140px;
+            margin-left: -1px;
+            background: linear-gradient(to top, #ff4757, #ff6b81);
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(255, 71, 87, 0.7);
+            z-index: 6;
+        }
+
+        .second-hand::after {
+            content: '';
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 25px;
+            background: linear-gradient(to bottom, #ff4757, transparent);
+            border-radius: 2px;
+        }
+
+        /* 数字时间显示 */
+        .digital-time {
+            font-size: 28px;
+            font-weight: 300;
+            color: #8ab4ff;
+            letter-spacing: 4px;
+            text-shadow: 0 0 15px rgba(100, 120, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="clock-container">
+        <div class="clock" id="clock">
+            <div class="hand hour-hand" id="hourHand"></div>
+            <div class="hand minute-hand" id="minuteHand"></div>
+            <div class="hand second-hand" id="secondHand"></div>
+        </div>
+        <div class="digital-time" id="digitalTime"></div>
+    </div>
+
+    <script>
+        (function () {
+            const clock = document.getElementById('clock');
+            const hourHand = document.getElementById('hourHand');
+            const minuteHand = document.getElementById('minuteHand');
+            const secondHand = document.getElementById('secondHand');
+            const digitalTime = document.getElementById('digitalTime');
+
+            const centerX = 180;
+            const centerY = 180;
+            const radius = 160;
+
+            // 创建刻度
+            for (let i = 0; i < 60; i++) {
+                const tick = document.createElement('div');
+                const isMajor = i % 5 === 0;
+                tick.className = 'tick ' + (isMajor ? 'major' : 'minor');
+
+                const angle = (i * 6) * (Math.PI / 180);
+                const tickLength = isMajor ? 20 : 10;
+
+                // 从边缘向内绘制刻度
+                const outerR = radius + 12;
+                const innerR = outerR - tickLength;
+
+                const x1 = centerX + outerR * Math.sin(angle);
+                const y1 = centerY - outerR * Math.cos(angle);
+                const x2 = centerX + innerR * Math.sin(angle);
+                const y2 = centerY - innerR * Math.cos(angle);
+
+                tick.style.left = x1 + 'px';
+                tick.style.top = y1 + 'px';
+                tick.style.height = tickLength + 'px';
+
+                const midX = (x1 + x2) / 2;
+                const midY = (y1 + y2) / 2;
+                tick.style.transform = `translate(-50%, -50%) rotate(${i * 6}deg)`;
+                tick.style.transformOrigin = `${midX - centerX}px ${midY - centerY}px`;
+
+                clock.appendChild(tick);
+            }
+
+            // 创建数字
+            const numbers = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+            const numRadius = radius - 30;
+
+            numbers.forEach((num, index) => {
+                const el = document.createElement('div');
+                el.className = 'number';
+                el.textContent = num;
+
+                const angle = (index * 30) * (Math.PI / 180);
+                const x = centerX + numRadius * Math.sin(angle) - 20;
+                const y = centerY - numRadius * Math.cos(angle) - 20;
+
+                el.style.left = x + 'px';
+                el.style.top = y + 'px';
+
+                clock.appendChild(el);
+            });
+
+            // 更新时钟
+            function updateClock() {
+                const now = new Date();
+                const hours = now.getHours() % 12;
+                const minutes = now.getMinutes();
+                const seconds = now.getSeconds();
+                const millis = now.getMilliseconds();
+
+                // 平滑秒针
+                const smoothSeconds = seconds + millis / 1000;
+                const smoothMinutes = minutes + smoothSeconds / 60;
+                const smoothHours = hours + smoothMinutes / 60;
+
+                const secondDeg = smoothSeconds * 6;
+                const minuteDeg = smoothMinutes * 6;
+                const hourDeg = smoothHours * 30;
+
+                secondHand.style.transform = `rotate(${secondDeg}deg)`;
+                minuteHand.style.transform = `rotate(${minuteDeg}deg)`;
+                hourHand.style.transform = `rotate(${hourDeg}deg)`;
+
+                // 数字时间
+                const h = String(now.getHours()).padStart(2, '0');
+                const m = String(minutes).padStart(2, '0');
+                const s = String(seconds).padStart(2, '0');
+                digitalTime.textContent = `${h}:${m}:${s}`;
+
+                requestAnimationFrame(updateClock);
+            }
+
+            updateClock();
+        })();
+    </script>
+</body>
+</html>
