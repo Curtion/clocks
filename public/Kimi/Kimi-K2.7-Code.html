@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模拟时钟</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #1a1a2e;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .clock {
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, #ffffff 0%, #f0f0f0 100%);
+      border: 10px solid #e94560;
+      box-shadow:
+        0 0 20px rgba(233, 69, 96, 0.3),
+        inset 0 0 30px rgba(0, 0, 0, 0.05);
+      position: relative;
+    }
+
+    .clock-face {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .number {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      padding-top: 14px;
+      transform-origin: center center;
+    }
+
+    .number span {
+      font-size: 22px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .tick {
+      position: absolute;
+      width: 2px;
+      height: 10px;
+      background: #888;
+      left: 50%;
+      top: 0;
+      transform-origin: center 160px;
+      transform: translateX(-50%);
+    }
+
+    .tick.major {
+      width: 4px;
+      height: 16px;
+      background: #e94560;
+    }
+
+    .hand {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      transform-origin: bottom center;
+      transform: translateX(-50%) rotate(0deg);
+      border-radius: 4px;
+      z-index: 2;
+    }
+
+    .hour-hand {
+      width: 8px;
+      height: 80px;
+      background: #2c3e50;
+    }
+
+    .minute-hand {
+      width: 5px;
+      height: 115px;
+      background: #34495e;
+    }
+
+    .second-hand {
+      width: 2px;
+      height: 130px;
+      background: #e94560;
+      z-index: 3;
+    }
+
+    .center-dot {
+      width: 16px;
+      height: 16px;
+      background: #e94560;
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 4;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="clock">
+    <div class="clock-face" id="clockFace">
+      <div class="hand hour-hand" id="hourHand"></div>
+      <div class="hand minute-hand" id="minuteHand"></div>
+      <div class="hand second-hand" id="secondHand"></div>
+      <div class="center-dot"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const clockFace = document.getElementById('clockFace');
+      const hourHand = document.getElementById('hourHand');
+      const minuteHand = document.getElementById('minuteHand');
+      const secondHand = document.getElementById('secondHand');
+
+      // 生成 60 个分钟刻度
+      for (let i = 0; i < 60; i++) {
+        const tick = document.createElement('div');
+        tick.className = i % 5 === 0 ? 'tick major' : 'tick';
+        tick.style.transform = `translateX(-50%) rotate(${i * 6}deg)`;
+        clockFace.appendChild(tick);
+      }
+
+      // 生成 12 个小时数字
+      for (let i = 1; i <= 12; i++) {
+        const number = document.createElement('div');
+        number.className = 'number';
+
+        const span = document.createElement('span');
+        span.textContent = i;
+        span.style.transform = `rotate(${-i * 30}deg)`;
+
+        number.appendChild(span);
+        number.style.transform = `rotate(${i * 30}deg)`;
+        clockFace.appendChild(number);
+      }
+
+      function updateClock() {
+        const now = new Date();
+        const ms = now.getMilliseconds();
+        const seconds = now.getSeconds();
+        const minutes = now.getMinutes();
+        const hours = now.getHours();
+
+        const secondDegrees = (seconds + ms / 1000) * 6;
+        const minuteDegrees = (minutes + seconds / 60 + ms / 60000) * 6;
+        const hourDegrees = ((hours % 12) + minutes / 60 + seconds / 3600) * 30;
+
+        secondHand.style.transform = `translateX(-50%) rotate(${secondDegrees}deg)`;
+        minuteHand.style.transform = `translateX(-50%) rotate(${minuteDegrees}deg)`;
+        hourHand.style.transform = `translateX(-50%) rotate(${hourDegrees}deg)`;
+
+        requestAnimationFrame(updateClock);
+      }
+
+      requestAnimationFrame(updateClock);
+    })();
+  </script>
+</body>
+</html>
