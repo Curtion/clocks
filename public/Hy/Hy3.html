@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模拟时钟</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1a1a2e;
+    font-family: system-ui, sans-serif;
+  }
+  .clock {
+    position: relative;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, #fdfdfd, #e6e6e6);
+    border: 12px solid #2e2e4f;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.1);
+  }
+  .tick {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 4px;
+    height: 14px;
+    background: #333;
+    transform-origin: 50% 0;
+    margin-left: -2px;
+  }
+  .tick.major {
+    width: 6px;
+    height: 22px;
+    margin-left: -3px;
+    background: #111;
+  }
+  .hand {
+    position: absolute;
+    left: 50%;
+    bottom: 50%;
+    transform-origin: 50% 100%;
+    border-radius: 4px;
+    background: #222;
+  }
+  .hour {
+    width: 8px;
+    height: 80px;
+    margin-left: -4px;
+    background: #111;
+  }
+  .minute {
+    width: 6px;
+    height: 115px;
+    margin-left: -3px;
+    background: #333;
+  }
+  .second {
+    width: 2px;
+    height: 130px;
+    margin-left: -1px;
+    background: #e63946;
+  }
+  .center-dot {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #e63946;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+  <div class="clock" id="clock">
+    <div class="center-dot"></div>
+    <div class="hand hour" id="hour"></div>
+    <div class="hand minute" id="minute"></div>
+    <div class="hand second" id="second"></div>
+  </div>
+
+  <script>
+    const clock = document.getElementById('clock');
+    const hourHand = document.getElementById('hour');
+    const minuteHand = document.getElementById('minute');
+    const secondHand = document.getElementById('second');
+
+    // 生成刻度
+    for (let i = 0; i < 60; i++) {
+      const tick = document.createElement('div');
+      tick.className = 'tick' + (i % 5 === 0 ? ' major' : '');
+      tick.style.transform = `rotate(${i * 6}deg) translateY(140px)`;
+      clock.appendChild(tick);
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const ms = now.getMilliseconds();
+      const s = now.getSeconds() + ms / 1000;
+      const m = now.getMinutes() + s / 60;
+      const h = (now.getHours() % 12) + m / 60;
+
+      secondHand.style.transform = `rotate(${s * 6}deg)`;
+      minuteHand.style.transform = `rotate(${m * 6}deg)`;
+      hourHand.style.transform = `rotate(${h * 30}deg)`;
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000 / 30);
+  </script>
+</body>
+</html>

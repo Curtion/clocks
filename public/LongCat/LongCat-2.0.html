@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LongCat 2.0 - Analog Clock</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #1a1a2e;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.clock-container {
+    text-align: center;
+}
+
+.clock-title {
+    color: #e0e0e0;
+    font-size: 2rem;
+    margin-bottom: 30px;
+    letter-spacing: 3px;
+}
+
+.clock {
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: #16213e;
+    border: 4px solid #0f3460;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 0, 0, 0.3);
+    position: relative;
+    margin: 0 auto;
+}
+
+.clock-face {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+/* 刻度样式 */
+.tick {
+    position: absolute;
+    width: 2px;
+    height: 12px;
+    background: #888;
+    left: 50%;
+    top: 5px;
+    transform-origin: center 145px;
+}
+
+.tick.major {
+    height: 18px;
+    width: 3px;
+    background: #e0e0e0;
+}
+
+/* 数字 */
+.number {
+    position: absolute;
+    color: #e0e0e0;
+    font-size: 1.2rem;
+    font-weight: bold;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 时针 */
+.hand {
+    position: absolute;
+    left: 50%;
+    transform-origin: bottom center;
+    bottom: 50%;
+}
+
+.hand-hour {
+    width: 6px;
+    height: 70px;
+    background: #e0e0e0;
+    margin-left: -3px;
+    border-radius: 3px;
+}
+
+/* 分针 */
+.hand-minute {
+    width: 4px;
+    height: 100px;
+    background: #e0e0e0;
+    margin-left: -2px;
+    border-radius: 2px;
+}
+
+/* 秒针 */
+.hand-second {
+    width: 2px;
+    height: 115px;
+    background: #ff6b6b;
+    margin-left: -1px;
+    border-radius: 1px;
+    z-index: 5;
+}
+
+/* 中心圆点 */
+.center-point {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #ff6b6b;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+}
+
+/* 数字时钟 */
+.digital-time {
+    color: #e0e0e0;
+    font-size: 1.5rem;
+    margin-top: 25px;
+    letter-spacing: 2px;
+    font-variant-numeric: tabular-nums;
+}
+</style>
+</head>
+<body>
+<div class="clock-container">
+    <div class="clock-title">LongCat 2.0</div>
+    <div class="clock">
+        <div class="clock-face" id="clockFace">
+            <div class="hands">
+                <div class="hand hand-hour" id="hourHand"></div>
+                <div class="hand hand-minute" id="minuteHand"></div>
+                <div class="hand hand-second" id="secondHand"></div>
+                <div class="center-point"></div>
+            </div>
+        </div>
+    </div>
+    <div class="digital-time" id="digitalTime"></div>
+</div>
+
+<script>
+function initClock() {
+    const clockFace = document.getElementById('clockFace');
+
+    // 生成刻度
+    for (let i = 0; i < 60; i++) {
+        const tick = document.createElement('div');
+        tick.className = 'tick' + (i % 5 === 0 ? ' major' : '');
+        tick.style.transform = `translateX(-50%) rotate(${i * 6}deg)`;
+        clockFace.insertBefore(tick, clockFace.querySelector('.hands'));
+    }
+
+    // 生成数字 1-12
+    for (let i = 1; i <= 12; i++) {
+        const number = document.createElement('div');
+        number.className = 'number';
+        const angle = i * 30 - 90;
+        const radius = 230 / 2 - 35;
+        const x = radius * Math.cos(angle * Math.PI / 180);
+        const y = radius * Math.sin(angle * Math.PI / 180);
+        number.style.left = `calc(50% + ${x}px - 15px)`;
+        number.style.top = `calc(50% + ${y}px - 15px)`;
+        number.textContent = i;
+        clockFace.insertBefore(number, clockFace.querySelector('.hands'));
+    }
+}
+
+function updateClock() {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const seconds = now.getSeconds();
+    const milliseconds = now.getMilliseconds();
+
+    // 秒针平滑移动
+    const secondsDeg = (seconds + milliseconds / 1000) * 6;
+    // 分针随秒针平滑移动
+    const minutesDeg = (minutes + seconds / 60) * 6;
+    // 时针随分针平滑移动
+    const hoursDeg = ((hours % 12) + minutes / 60) * 30;
+
+    document.getElementById('hourHand').style.transform = `translateX(-50%) rotate(${hoursDeg}deg)`;
+    document.getElementById('minuteHand').style.transform = `translateX(-50%) rotate(${minutesDeg}deg)`;
+    document.getElementById('secondHand').style.transform = `translateX(-50%) rotate(${secondsDeg}deg)`;
+
+    // 数字时钟显示
+    const pad = n => String(n).padStart(2, '0');
+    document.getElementById('digitalTime').textContent =
+        `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+}
+
+initClock();
+updateClock();
+
+// 使用 requestAnimationFrame 实现平滑的秒针动画
+function animate() {
+    updateClock();
+    requestAnimationFrame(animate);
+}
+
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>

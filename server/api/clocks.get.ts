@@ -13,6 +13,8 @@ const CATEGORIES = [
   'MiMo',
   'Gemini',
   'Kimi',
+  'Hy',
+  'LongCat',
   'Other',
 ] as const
 
