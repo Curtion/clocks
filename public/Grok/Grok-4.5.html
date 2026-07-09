@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模拟时钟</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: #0b1220;
+      color: #e2e8f0;
+    }
+
+    .clock {
+      --size: min(80vw, 420px);
+      position: relative;
+      width: var(--size);
+      height: var(--size);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 42%, #1e293b 0%, #0f172a 62%, #020617 100%);
+      box-shadow:
+        0 0 0 12px #1e293b,
+        0 0 0 14px #334155,
+        0 30px 80px rgba(0, 0, 0, 0.55),
+        inset 0 0 40px rgba(15, 23, 42, 0.8);
+    }
+
+    .tick {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 2px;
+      height: calc(var(--size) / 2 - 18px);
+      transform-origin: center bottom;
+      transform: translate(-50%, -100%) rotate(var(--deg));
+    }
+
+    .tick::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 2px;
+      height: 10px;
+      border-radius: 2px;
+      background: #64748b;
+      transform: translateX(-50%);
+    }
+
+    .tick.hour::after {
+      width: 4px;
+      height: 16px;
+      background: #e2e8f0;
+    }
+
+    .number {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 2em;
+      height: 2em;
+      margin: -1em 0 0 -1em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(16px, 4.2vw, 24px);
+      font-weight: 600;
+      color: #f8fafc;
+      transform: rotate(var(--deg)) translateY(calc(var(--size) / -2 + 42px)) rotate(calc(var(--deg) * -1));
+      user-select: none;
+    }
+
+    .hand {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform-origin: center bottom;
+      border-radius: 999px;
+      will-change: transform;
+    }
+
+    .hand.hour {
+      width: 8px;
+      height: 26%;
+      margin-left: -4px;
+      margin-top: -26%;
+      background: #f8fafc;
+      z-index: 3;
+    }
+
+    .hand.minute {
+      width: 5px;
+      height: 36%;
+      margin-left: -2.5px;
+      margin-top: -36%;
+      background: #cbd5e1;
+      z-index: 4;
+    }
+
+    .hand.second {
+      width: 2px;
+      height: 42%;
+      margin-left: -1px;
+      margin-top: -42%;
+      background: #f43f5e;
+      z-index: 5;
+    }
+
+    .hand.second::before {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      width: 2px;
+      height: 18%;
+      background: #f43f5e;
+      transform: translateX(-50%);
+    }
+
+    .center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #f43f5e;
+      border: 3px solid #f8fafc;
+      transform: translate(-50%, -50%);
+      z-index: 6;
+      box-shadow: 0 0 0 2px #0f172a;
+    }
+  </style>
+</head>
+<body>
+  <div class="clock" id="clock" aria-label="模拟时钟" role="img">
+    <div class="hand hour" id="hour"></div>
+    <div class="hand minute" id="minute"></div>
+    <div class="hand second" id="second"></div>
+    <div class="center"></div>
+  </div>
+
+  <script>
+    (function () {
+      var clock = document.getElementById("clock");
+      var hourHand = document.getElementById("hour");
+      var minuteHand = document.getElementById("minute");
+      var secondHand = document.getElementById("second");
+
+      for (var i = 0; i < 60; i++) {
+        var tick = document.createElement("div");
+        tick.className = "tick" + (i % 5 === 0 ? " hour" : "");
+        tick.style.setProperty("--deg", i * 6 + "deg");
+        clock.appendChild(tick);
+      }
+
+      for (var n = 1; n <= 12; n++) {
+        var num = document.createElement("div");
+        num.className = "number";
+        num.textContent = String(n);
+        num.style.setProperty("--deg", n * 30 + "deg");
+        clock.appendChild(num);
+      }
+
+      function update() {
+        var now = new Date();
+        var ms = now.getMilliseconds();
+        var s = now.getSeconds() + ms / 1000;
+        var m = now.getMinutes() + s / 60;
+        var h = (now.getHours() % 12) + m / 60;
+
+        secondHand.style.transform = "rotate(" + s * 6 + "deg)";
+        minuteHand.style.transform = "rotate(" + m * 6 + "deg)";
+        hourHand.style.transform = "rotate(" + h * 30 + "deg)";
+      }
+
+      function loop() {
+        update();
+        requestAnimationFrame(loop);
+      }
+
+      loop();
+    })();
+  </script>
+</body>
+</html>
