@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>模拟时钟</title>
+	<style>
+		* { box-sizing: border-box; }
+
+		body {
+			min-height: 100vh;
+			margin: 0;
+			display: grid;
+			place-items: center;
+			overflow: hidden;
+			background:
+				radial-gradient(circle at 50% 35%, #24314a 0, #111827 42%, #070b12 100%);
+			font-family: system-ui, sans-serif;
+		}
+
+		.clock {
+			position: relative;
+			width: min(78vmin, 430px);
+			aspect-ratio: 1;
+			border: clamp(8px, 2vmin, 14px) solid #d8dee9;
+			border-radius: 50%;
+			background: radial-gradient(circle, #fff 0 65%, #edf1f6 100%);
+			box-shadow:
+				0 2.5vmin 6vmin #0008,
+				inset 0 0 0 3px #fff,
+				inset 0 0 25px #64748b55;
+		}
+
+		.clock::before {
+			content: "";
+			position: absolute;
+			inset: 5%;
+			border-radius: 50%;
+			background:
+				repeating-conic-gradient(from -1deg, #172033 0 2deg, transparent 2deg 30deg),
+				repeating-conic-gradient(from -.4deg, #7c8798 0 .8deg, transparent .8deg 6deg);
+			-webkit-mask: radial-gradient(circle, transparent 0 82%, #000 82%);
+			mask: radial-gradient(circle, transparent 0 82%, #000 82%);
+		}
+
+		.number {
+			position: absolute;
+			display: grid;
+			place-items: center;
+			color: #172033;
+			font-size: clamp(1.1rem, 4.2vmin, 1.8rem);
+			font-weight: 650;
+			line-height: 1;
+		}
+
+		.n12 { top: 8%; left: 50%; transform: translateX(-50%); }
+		.n3  { top: 50%; right: 9%; transform: translateY(-50%); }
+		.n6  { bottom: 8%; left: 50%; transform: translateX(-50%); }
+		.n9  { top: 50%; left: 9%; transform: translateY(-50%); }
+
+		.hand {
+			position: absolute;
+			z-index: 2;
+			left: 50%;
+			bottom: 50%;
+			border-radius: 999px;
+			transform: translateX(-50%) rotate(var(--angle));
+			transform-origin: 50% 100%;
+			will-change: transform;
+		}
+
+		.hour {
+			width: clamp(7px, 2.1vmin, 11px);
+			height: 25%;
+			background: #172033;
+		}
+
+		.minute {
+			width: clamp(5px, 1.4vmin, 8px);
+			height: 35%;
+			background: #334155;
+		}
+
+		.second {
+			z-index: 3;
+			width: clamp(2px, .55vmin, 3px);
+			height: 39%;
+			bottom: 47%;
+			background: #e11d48;
+			transform-origin: 50% 92.3%;
+		}
+
+		.pin {
+			position: absolute;
+			z-index: 4;
+			top: 50%;
+			left: 50%;
+			width: clamp(13px, 3.6vmin, 20px);
+			aspect-ratio: 1;
+			border: clamp(3px, .8vmin, 5px) solid #e11d48;
+			border-radius: 50%;
+			background: #fff;
+			transform: translate(-50%, -50%);
+			box-shadow: 0 1px 4px #0005;
+		}
+	</style>
+</head>
+<body>
+	<main class="clock" role="img" aria-label="当前时间">
+		<span class="number n12">12</span>
+		<span class="number n3">3</span>
+		<span class="number n6">6</span>
+		<span class="number n9">9</span>
+		<span class="hand hour"></span>
+		<span class="hand minute"></span>
+		<span class="hand second"></span>
+		<span class="pin"></span>
+	</main>
+
+	<script>
+		const clock = document.querySelector('.clock');
+		const hourHand = document.querySelector('.hour');
+		const minuteHand = document.querySelector('.minute');
+		const secondHand = document.querySelector('.second');
+		let labeledSecond = -1;
+
+		function updateClock() {
+			const now = new Date();
+			const seconds = now.getSeconds() + now.getMilliseconds() / 1000;
+			const minutes = now.getMinutes() + seconds / 60;
+			const hours = now.getHours() % 12 + minutes / 60;
+
+			hourHand.style.setProperty('--angle', `${hours * 30}deg`);
+			minuteHand.style.setProperty('--angle', `${minutes * 6}deg`);
+			secondHand.style.setProperty('--angle', `${seconds * 6}deg`);
+
+			if (now.getSeconds() !== labeledSecond) {
+				labeledSecond = now.getSeconds();
+				clock.setAttribute('aria-label', `当前时间 ${now.toLocaleTimeString()}`);
+			}
+
+			requestAnimationFrame(updateClock);
+		}
+
+		updateClock();
+	</script>
+</body>
+</html>
