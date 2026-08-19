@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>模拟时钟</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, #1f2440, #0d0f1a 75%);
+    font-family: "Segoe UI", Arial, sans-serif;
+  }
+
+  /* 表盘:320px 含 10px padding,绝对定位子元素相对 320×320 的 padding box,
+     圆心在 (160,160),半径 160 */
+  .clock {
+    position: relative;
+    width: 320px;
+    height: 320px;
+    padding: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #232a4d, #141830 75%);
+    box-shadow: 0 0 0 6px #3b4569,
+                0 0 60px rgba(0, 0, 0, 0.6),
+                inset 0 0 30px rgba(0, 0, 0, 0.5);
+  }
+
+  /* 刻度:顶部对齐边缘,绕圆心(距顶部 160px)旋转摆放 */
+  .tick {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 2px;
+    height: 10px;
+    margin-left: -1px;
+    background: #6b7394;
+    transform-origin: 50% 160px;
+  }
+
+  .tick.major {
+    width: 4px;
+    height: 16px;
+    margin-left: -2px;
+    background: #cdd3e8;
+  }
+
+  /* 数字:先绕自身旋转 -θ 保持水平,再平移至半径 112 处 */
+  .number {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    color: #cdd3e8;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  /* 指针:底边(margin 上移自身高度)落在圆心,transform-origin 取底边中点,
+     rotate 即绕圆心转动;0deg 指向 12 点 */
+  .hand {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    border-radius: 4px;
+    transform-origin: 50% 100%;
+  }
+
+  .hand.hour {
+    width: 7px;
+    height: 65px;
+    margin-left: -3.5px;
+    margin-top: -65px;
+    background: #ffffff;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+  }
+
+  .hand.minute {
+    width: 5px;
+    height: 95px;
+    margin-left: -2.5px;
+    margin-top: -95px;
+    background: #e8ecff;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+  }
+
+  .hand.second {
+    width: 2px;
+    height: 105px;
+    margin-left: -1px;
+    margin-top: -105px;
+    background: #ff5c5c;
+  }
+
+  /* 秒针尾部:越过圆心一小段 */
+  .hand.second::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 2px;
+    height: 20px;
+    background: #ff5c5c;
+  }
+
+  /* 中心轴帽 */
+  .cap {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    margin: -7px 0 0 -7px;
+    border-radius: 50%;
+    background: #ff5c5c;
+    border: 3px solid #ffffff;
+  }
+</style>
+</head>
+<body>
+  <div class="clock" id="clock">
+    <div class="hand hour" id="hourHand"></div>
+    <div class="hand minute" id="minuteHand"></div>
+    <div class="hand second" id="secondHand"></div>
+    <div class="cap"></div>
+  </div>
+
+<script>
+  const clock = document.getElementById("clock");
+
+  // 生成 60 个刻度,每第 5 个为加粗大刻度
+  for (let i = 0; i < 60; i++) {
+    const tick = document.createElement("div");
+    tick.className = "tick" + (i % 5 === 0 ? " major" : "");
+    tick.style.transform = `rotate(${i * 6}deg)`;
+    clock.appendChild(tick);
+  }
+
+  // 生成 1-12 数字,放置在半径 112px 处并保持水平
+  for (let i = 1; i <= 12; i++) {
+    const num = document.createElement("div");
+    num.className = "number";
+    num.textContent = i;
+    num.style.transform =
+      `translate(-50%, -50%) rotate(${i * 30}deg) translateY(-112px) rotate(${-i * 30}deg)`;
+    clock.appendChild(num);
+  }
+
+  const hourHand = document.getElementById("hourHand");
+  const minuteHand = document.getElementById("minuteHand");
+  const secondHand = document.getElementById("secondHand");
+
+  function update() {
+    const now = new Date();
+    // 用毫秒平滑秒针,并让分针/时针连续缓动,保证显示精确时间
+    const s = now.getSeconds() + now.getMilliseconds() / 1000;
+    const m = now.getMinutes() + s / 60;
+    const h = (now.getHours() % 12) + m / 60;
+
+    secondHand.style.transform = `rotate(${s * 6}deg)`;
+    minuteHand.style.transform = `rotate(${m * 6}deg)`;
+    hourHand.style.transform = `rotate(${h * 30}deg)`;
+
+    requestAnimationFrame(update);
+  }
+
+  requestAnimationFrame(update);
+</script>
+</body>
+</html>
